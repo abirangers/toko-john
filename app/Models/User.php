@@ -13,7 +13,7 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
     use HasUuids;
 
-    protected $keyType = "string";
+    protected $keyType = "id";
     public $incrementing = false;
 
     /**
