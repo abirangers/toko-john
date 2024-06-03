@@ -1,0 +1,49 @@
+@startuml
+
+entity Product {
+    * id : VARCHAR
+    --
+    * title : VARCHAR
+    * description : TEXT
+    * price : DECIMAL
+    * images : VARCHAR
+    * category_id : VARCHAR
+}
+
+entity Category {
+    * id : VARCHAR
+    --
+    * name : VARCHAR
+}
+
+entity User {
+    * id : VARCHAR
+    --
+    * name : VARCHAR
+    * email : VARCHAR
+    * password : VARCHAR
+}
+
+entity Order {
+    * id : VARCHAR
+    --
+    * user_id : VARCHAR
+    * total_price : DECIMAL
+    * status : VARCHAR
+}
+
+entity OrderItem {
+    * id : VARCHAR
+    --
+    * order_id : VARCHAR
+    * product_id : VARCHAR
+    * quantity : INT
+    * price : DECIMAL
+}
+
+Category ||--|{ Product : Contains
+User ||--o{ Order : Has
+Order ||--|{ OrderItem : Has
+Product ||--|{ OrderItem : Refer
+
+@enduml

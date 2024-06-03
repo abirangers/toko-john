@@ -1,5 +1,5 @@
-import forms from "@tailwindcss/forms"
-import defaultTheme from "tailwindcss/defaultTheme"
+import forms from "@tailwindcss/forms";
+import defaultTheme from "tailwindcss/defaultTheme";
 
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -61,16 +61,16 @@ export default {
                 sm: "calc(var(--radius) - 4px)",
             },
             fontFamily: {
-                sans: ['Poppins', ...defaultTheme.fontFamily.sans],
+                sans: ["Poppins", ...defaultTheme.fontFamily.sans],
             },
             keyframes: {
                 "accordion-down": {
-                    from: { height: 0 },
+                    from: { height: "0" },
                     to: { height: "var(--radix-accordion-content-height)" },
                 },
                 "accordion-up": {
                     from: { height: "var(--radix-accordion-content-height)" },
-                    to: { height: 0 },
+                    to: { height: "0" },
                 },
             },
             animation: {
@@ -81,4 +81,4 @@ export default {
     },
 
     plugins: [forms, require("tailwindcss-animate")],
-}
+};
