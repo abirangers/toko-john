@@ -15,9 +15,14 @@ import { Button, buttonVariants } from "@/Components/ui/button";
 import { Link } from "@inertiajs/react";
 import Navbar from "@/Components/Navbar/Navbar";
 import Footer from "@/Components/Footer/Footer";
-import { PageProps } from "@/types";
+import {Category, PageProps, Product} from "@/types";
 
-const HomePage = ({ auth }: PageProps) => {
+interface HomeProps extends PageProps {
+    categories: Category[];
+    products: Product[];
+}
+
+const HomePage = ({ auth, categories, products }: HomeProps) => {
     return (
         <>
             {/*Navigation Bar*/}
@@ -32,7 +37,7 @@ const HomePage = ({ auth }: PageProps) => {
                 >
                     <path
                         fill="#0d2a59"
-                        fill-opacity="1"
+                        fillOpacity="1"
                         d="M0,160L48,176C96,192,192,224,288,213.3C384,203,480,149,576,122.7C672,96,768,96,864,122.7C960,149,1056,203,1152,213.3C1248,224,1344,192,1392,176L1440,160L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
                     ></path>
                 </svg>
@@ -109,60 +114,26 @@ const HomePage = ({ auth }: PageProps) => {
                 </div>
 
                 <div className="grid gap-4 sm:grid-flow-col sm:grid-rows-2 md:grid-rows-1">
-                    <Link href={""} className="group">
-                        <Card className="transition-all group-hover:bg-secondary">
-                            <CardHeader>
-                                <CardImage
-                                    src="/images/clothing.svg"
-                                    className="w-8 h-8"
-                                />
-                            </CardHeader>
-                            <CardContent>
-                                <CardTitle className="text-secondary mb-[6px] text-2xl font-semibold tracking-tight group-hover:text-primary-foreground">
-                                    Clothing
-                                </CardTitle>
-                                <CardDescription className="group-hover:text-primary-foreground">
-                                    19 Product
-                                </CardDescription>
-                            </CardContent>
-                        </Card>
-                    </Link>
-                    <Link href={""} className="sm:col-span-2 md:col-span-full group">
-                        <Card className="transition-all group-hover:bg-secondary">
-                            <CardHeader>
-                                <CardImage
-                                    src="/images/shoes.svg"
-                                    className="w-8 h-8"
-                                />
-                            </CardHeader>
-                            <CardContent>
-                                <CardTitle className="text-secondary mb-[6px] text-2xl font-semibold tracking-tight group-hover:text-primary-foreground">
-                                    Shoes
-                                </CardTitle>
-                                <CardDescription className="group-hover:text-primary-foreground">
-                                    19 Product
-                                </CardDescription>
-                            </CardContent>
-                        </Card>
-                    </Link>
-                    <Link href={""} className="group">
-                        <Card className="transition-all group-hover:bg-secondary">
-                            <CardHeader>
-                                <CardImage
-                                    src="/images/accessories.svg"
-                                    className="w-8 h-8"
-                                />
-                            </CardHeader>
-                            <CardContent>
-                                <CardTitle className="text-secondary mb-[6px] text-2xl font-semibold tracking-tight group-hover:text-primary-foreground">
-                                    Accessories
-                                </CardTitle>
-                                <CardDescription className="group-hover:text-primary-foreground">
-                                    19 Product
-                                </CardDescription>
-                            </CardContent>
-                        </Card>
-                    </Link>
+                    {categories.map((category, index) => (
+                        <Link href={""} className="group">
+                            <Card className="transition-all group-hover:bg-secondary">
+                                <CardHeader>
+                                    <CardImage
+                                        src={`/images/${(category.name).toLowerCase()}.svg`}
+                                        className="w-8 h-8"
+                                    />
+                                </CardHeader>
+                                <CardContent>
+                                    <CardTitle className="text-secondary mb-[6px] text-2xl font-semibold tracking-tight group-hover:text-primary-foreground">
+                                        {category.name}
+                                    </CardTitle>
+                                    <CardDescription className="group-hover:text-primary-foreground">
+                                        {category.products.length} Product
+                                    </CardDescription>
+                                </CardContent>
+                            </Card>
+                        </Link>
+                    ))}
                 </div>
             </section>
 
@@ -187,110 +158,33 @@ const HomePage = ({ auth }: PageProps) => {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 mb-[72px]">
-                    <Link
-                        href={""}
-                        className="p-4 transition-all border rounded-lg shadow-lg bg-card text-card-foreground hover:shadow-xl"
-                    >
-                        <img
-                            src="/images/product1.jpg"
-                            alt="product1"
-                            className="object-cover w-full mb-2 rounded-xl h-60"
-                        />
-                        <p className="text-sm font-normal leading-8 text-muted-foreground">
-                            Clothing
-                        </p>
-                        <h2 className="mb-3 text-lg font-semibold leading-tight">
-                            Baju Pramuka
-                        </h2>
-                        <div className="flex items-center justify-between">
-                            <h3 className="text-base font-semibold leading-tight text-secondary">
-                                Rp500.000
-                            </h3>
-                            <div className="group">
-                                <div className="p-2 transition-all border rounded-full shadow-md bg-secondary/10 group-hover:bg-secondary">
-                                    <ShoppingCart className="transition-all text-secondary group-hover:text-primary-foreground" />
+                    {products.map((product, index) => (
+                        <Link href={""} className="p-4 transition-all border rounded-lg shadow-lg bg-card text-card-foreground hover:shadow-xl">
+                            <img
+                                src={`/storage/${product.image}`}
+                                alt="product1"
+                                className="object-cover w-full mb-2 rounded-xl h-60"
+                            />
+                            <p className="text-sm font-normal leading-8 text-muted-foreground">
+                                {product.category.name}
+                            </p>
+                            <h2 className="mb-3 text-lg font-semibold leading-tight">
+                                {product.title}
+                            </h2>
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-base font-semibold leading-tight text-secondary">
+                                    {Number(product.price).toLocaleString('id-ID', {style: 'currency', currency: 'IDR',minimumFractionDigits: 0,
+                                    maximumFractionDigits: 0})}
+                                </h3>
+                                <div className="group">
+                                    <div className="p-2 transition-all border rounded-full shadow-md bg-secondary/10 group-hover:bg-secondary">
+                                        <ShoppingCart className="transition-all text-secondary group-hover:text-primary-foreground" />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </Link>
-                    <Link
-                        href={""}
-                        className="p-4 transition-all border rounded-lg shadow-lg bg-card text-card-foreground hover:shadow-xl"
-                    >
-                        <img
-                            src="/images/product1.jpg"
-                            alt="product1"
-                            className="object-cover w-full mb-2 rounded-xl h-60"
-                        />
-                        <p className="text-sm font-normal leading-8 text-muted-foreground">
-                            Clothing
-                        </p>
-                        <h2 className="mb-3 text-lg font-semibold leading-tight">
-                            Baju Pramuka
-                        </h2>
-                        <div className="flex items-center justify-between">
-                            <h3 className="text-base font-semibold leading-tight text-secondary">
-                                Rp500.000
-                            </h3>
-                            <div className="group">
-                                <div className="p-2 transition-all border rounded-full shadow-md bg-secondary/10 group-hover:bg-secondary">
-                                    <ShoppingCart className="transition-all text-secondary group-hover:text-primary-foreground" />
-                                </div>
-                            </div>
-                        </div>
-                    </Link>
-                    <Link
-                        href={""}
-                        className="p-4 transition-all border rounded-lg shadow-lg bg-card text-card-foreground hover:shadow-xl"
-                    >
-                        <img
-                            src="/images/product1.jpg"
-                            alt="product1"
-                            className="object-cover w-full mb-2 rounded-xl h-60"
-                        />
-                        <p className="text-sm font-normal leading-8 text-muted-foreground">
-                            Clothing
-                        </p>
-                        <h2 className="mb-3 text-lg font-semibold leading-tight">
-                            Baju Pramuka
-                        </h2>
-                        <div className="flex items-center justify-between">
-                            <h3 className="text-base font-semibold leading-tight text-secondary">
-                                Rp500.000
-                            </h3>
-                            <div className="group">
-                                <div className="p-2 transition-all border rounded-full shadow-md bg-secondary/10 group-hover:bg-secondary">
-                                    <ShoppingCart className="transition-all text-secondary group-hover:text-primary-foreground" />
-                                </div>
-                            </div>
-                        </div>
-                    </Link>
-                    <Link
-                        href={""}
-                        className="p-4 transition-all border rounded-lg shadow-lg bg-card text-card-foreground hover:shadow-xl"
-                    >
-                        <img
-                            src="/images/product1.jpg"
-                            alt="product1"
-                            className="object-cover w-full mb-2 rounded-xl h-60"
-                        />
-                        <p className="text-sm font-normal leading-8 text-muted-foreground">
-                            Clothing
-                        </p>
-                        <h2 className="mb-3 text-lg font-semibold leading-tight">
-                            Baju Pramuka
-                        </h2>
-                        <div className="flex items-center justify-between">
-                            <h3 className="text-base font-semibold leading-tight text-secondary">
-                                Rp500.000
-                            </h3>
-                            <div className="group">
-                                <div className="p-2 transition-all border rounded-full shadow-md bg-secondary/10 group-hover:bg-secondary">
-                                    <ShoppingCart className="transition-all text-secondary group-hover:text-primary-foreground" />
-                                </div>
-                            </div>
-                        </div>
-                    </Link>
+                        </Link>
+                    ))}
+
                 </div>
 
                 <Link
