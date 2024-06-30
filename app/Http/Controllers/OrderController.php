@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class OrderController extends Controller
 {
@@ -12,7 +13,20 @@ class OrderController extends Controller
      */
     public function index()
     {
-        //
+        $orderStatusParams = request('status');
+        $query = Order::with(["orderItems.product", "orderItems.product.category"])->where("user_id", auth()->user()->id);
+
+        if ($orderStatusParams) {
+            $query->where('status', $orderStatusParams);
+        }
+
+        $orders = $query->orderByRaw("FIELD(status, 'completed', 'pending', 'canceled') ASC, created_at DESC")->get();
+        
+        $totalOrder = $orders->where('status', 'completed')->sum(function ($order) {
+            return $order->orderItems->sum('product.price');
+        });
+
+        return Inertia::render('Order/Index', compact('orders', 'orderStatusParams', 'totalOrder'));
     }
 
     /**
@@ -28,7 +42,7 @@ class OrderController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        
     }
 
     /**

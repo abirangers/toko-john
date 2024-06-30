@@ -2,28 +2,48 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Cviebrock\EloquentSluggable\Sluggable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends Model
 {
     use HasFactory;
-    use HasUuids;
+    use SoftDeletes;
+    use Sluggable;
 
-    public $incrementing = false;
-    protected $keyType = "string";
     protected $fillable = [
         'title',
         'image',
         'description',
         'price',
+        'stock',
         'category_id',
     ];
+    
+    public function sluggable(): array
+    {
+        return [
+            'slug' => [
+                'source' => 'title'
+            ]
+        ];
+    }
 
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class, 'category_id', 'id');
+    }
+
+    public function orderItems(): HasMany {
+        return $this->hasMany(OrderItem::class, 'product_id', 'id');
+    }
+
+    public function cartItems(): HasMany
+    {
+        return $this->hasMany(CartItem::class);
     }
 }

@@ -1,68 +1,105 @@
-import Navbar from "@/Components/Navbar/Navbar";
-import { Button } from "@/Components/ui/button";
-import * as React from "react";
+import { CartItem as CartItemType, PageProps } from "@/types";
+import CartItem from "@/Pages/Cart/CartItem";
+import OrderSummary from "@/Pages/Cart/OrderSummary";
+import MainLayout from "@/Layouts/MainLayout";
+import { router, useForm } from "@inertiajs/react";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
 
-const CartPage = () => {
+const CartPage = ({
+    auth,
+    cartItems,
+}: PageProps<{ cartItems: CartItemType[] }>) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [isOrderSuccessful, setIsOrderSuccessful] = useState(false);
+    const form = useForm({ cartItems });
+
+    useEffect(() => {
+        if (form.errors) {
+            Object.values(form.errors).forEach((error: any) => {
+                toast.error(error);
+            });
+        }
+    }, [form.errors]);
+
+    const handleSubmit = (
+        e: React.MouseEvent<HTMLButtonElement, MouseEvent>
+    ) => {
+        e.preventDefault();
+
+        if (!auth.user) {
+            router.visit("/login");
+            return;
+        }
+
+        try {
+            form.post(route("cart.store"), {
+                onSuccess: async (params) => {
+                    const flash = params.props.flash as {
+                        error: string;
+                    };
+
+                    if (flash.error) {
+                        toast.error(flash.error);
+                        return;
+                    }
+
+                    setIsOrderSuccessful(true);
+                    setIsOpen(true);
+                },
+            });
+        } catch (e) {
+            toast.error("Failed to send cart to server");
+            console.log(e);
+        }
+    };
+
+    useEffect(() => {
+        if (!isOpen && isOrderSuccessful) {
+            router.visit(route("order.index"));
+        }
+    }, [isOpen, isOrderSuccessful]);
+
     return (
-        <>
-            <Navbar />
+        <MainLayout user={auth.user}>
             <section className="px-8 py-16">
                 <h1 className="mb-2 text-3xl font-bold leading-tight">
                     Shopping Cart
                 </h1>
 
-                <div className="flex mt-12 gap-x-12">
-                    {/* left */}
-                    <div className="w-3/5">
-                        <div className="flex justify-between">
-                            <div className="flex gap-x-6">
-                                <div className="w-48 h-48 rounded-md">
-                                    <img
-                                        src="/images/product1.jpg"
-                                        alt="product1"
-                                        className="object-cover h-full rounded-md"
-                                    />
-                                </div>
-                                <div>
-                                    <h2 className="text-lg font-semibold">
-                                        Biji Air
-                                    </h2>
-                                    <h3 className="text-base">Rp500.000</h3>
-                                </div>
-                            </div>
-
-                            <p className="text-sm text-primary/70">Clothing</p>
-
-                            <div>
-                                <div className="w-8 h-8 leading-8 text-center rounded-full shadow-md">
-                                    X
-                                </div>
-                            </div>
-                        </div>
+                <div className="flex flex-col mt-12 gap-y-14 lg:flex-row gap-x-12">
+                    {/* Cart Item */}
+                    <div className="w-full space-y-5 lg:w-3/5">
+                        {cartItems.length === 0 ? (
+                            <p>Your cart is empty.</p>
+                        ) : (
+                            cartItems.map((item) => (
+                                <CartItem
+                                    key={item.id}
+                                    product={item.product}
+                                />
+                            ))
+                        )}
                     </div>
+
                     {/* right */}
-                    <div className="w-2/5">
-                        <div className="p-8 rounded-md bg-gray-50">
-                            <h2 className="mb-6 text-lg font-medium">
-                                Order Summary
-                            </h2>
-                            <hr />
-                            <div className="flex justify-between my-4">
-                                <h3 className="text-base font-medium">
-                                    Order total
-                                </h3>
-                                <h3 className="text-base font-normal">
-                                    Rp500.000
-                                </h3>
-                            </div>
-                            <Button className="w-full hover:before:-translate-x-[464px]">
-                                Checkout
-                            </Button>
-                        </div>
+                    <div className="w-full lg:w-2/5">
+                        <OrderSummary
+                            orderTotal={cartItems.reduce(
+                                (total, item) =>
+                                    total + item.product.price * item.quantity,
+                                0
+                            )}
+                            cartItems={cartItems}
+                            form={form}
+                            handleSubmit={handleSubmit}
+                            isOpen={isOpen}
+                            setIsOpen={setIsOpen}
+                        />
                     </div>
                 </div>
             </section>
-        </>
+        </MainLayout>
     );
 };
 

@@ -6,11 +6,25 @@ entity Product {
     * title : VARCHAR
     * description : TEXT
     * price : DECIMAL
+    * quantity: INT
     * images : VARCHAR
     * category_id : VARCHAR
 }
 
 entity Category {
+    * id : VARCHAR
+    --
+    * name : VARCHAR
+}
+
+entity Class {
+    * id : VARCHAR
+    --
+    * name : VARCHAR
+    * major_id: VARCHAR
+}
+
+entity Major {
     * id : VARCHAR
     --
     * name : VARCHAR
@@ -22,6 +36,8 @@ entity User {
     * name : VARCHAR
     * email : VARCHAR
     * password : VARCHAR
+    * class_id : VARCHAR
+    * major_id : VARCHAR
 }
 
 entity Order {
@@ -42,8 +58,10 @@ entity OrderItem {
 }
 
 Category ||--|{ Product : Contains
+Major ||--|{ Class : Contains
+Class ||--|{ User : Contains
 User ||--o{ Order : Has
 Order ||--|{ OrderItem : Has
-Product ||--|{ OrderItem : Refer
+Product ||--|{ OrderItem
 
 @enduml

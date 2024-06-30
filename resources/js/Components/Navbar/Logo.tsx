@@ -2,6 +2,7 @@ import { Link } from '@inertiajs/react';
 import * as React from 'react';
 
 const Logo = () => {
+    
   return (
       <Link href="/" className="flex items-center gap-2 mr-8">
           <img

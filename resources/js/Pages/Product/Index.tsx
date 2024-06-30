@@ -1,136 +1,121 @@
 import Navbar from "@/Components/Navbar/Navbar";
 import { Button, buttonVariants } from "@/Components/ui/button";
+import { Category, PageProps, Product, User } from "@/types";
+import { Link, router, usePage } from "@inertiajs/react";
+import { Plus } from "lucide-react";
+import {
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
+} from "@/Components/ui/sheet";
 import { cn } from "@/lib/utils";
-import { PageProps } from "@/types";
-import { Link } from "@inertiajs/react";
-import { ArrowRight, ShoppingCart, Plus } from "lucide-react";
-import React from "react";
+import ProductCard from "@/Components/ProductCard";
+import { useState } from "react";
+import MainLayout from "@/Layouts/MainLayout";
 
-const ProductPage = ({ auth }: PageProps) => {
+interface ProductProps extends PageProps {
+    products: Product[];
+    categories: Category[];
+}
+
+const ProductPage = ({ products, categories }: ProductProps) => {
+    const { auth, categoryParams } = usePage().props as unknown as {
+        auth: { user: User };
+        categoryParams: string;
+    };
+
+    const [_, setSelectedCategory] = useState(categoryParams);
+
+    const handleCategoryClick = (categoryName: string) => {
+        setSelectedCategory(categoryName);
+        router.get(
+            categoryName === categoryParams
+                ? "/products"
+                : "/products?category=" + categoryName
+        );
+    };
+
     return (
-        <>
-            <Navbar user={auth.user} />
+        <MainLayout user={auth.user}>
             <section className="px-8 pt-10">
                 <div className="mb-6">
                     <h2 className="mb-1 text-3xl font-bold tracking-tighter text-secondary">
-                        Products (42)
+                        Products ({products.length})
                     </h2>
-                    <p className="mb-4 text-sm font-normal text-muted-foreground">
-                        Explore all products we offer from around the world
+                    <p className="text-sm font-normal text-muted-foreground">
+                        Jelajahi semua produk yang kami tawarkan dari SMK Plus
+                        Pelita Nusantara!
                     </p>
-                    <Button className="mr-4 mt-7 gap-x-2">
-                        Filters <Plus />
-                    </Button>
+                    <FilterSheet
+                        categories={categories}
+                        categoryParams={categoryParams}
+                        handleCategoryClick={handleCategoryClick}
+                    />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 mb-[72px]">
-                    <Link
-                        href={""}
-                        className="p-4 transition-all border rounded-lg shadow-lg bg-card text-card-foreground hover:shadow-xl"
-                    >
-                        <img
-                            src="/images/product1.jpg"
-                            alt="product1"
-                            className="object-cover w-full mb-2 rounded-xl h-60"
-                        />
-                        <p className="text-sm font-normal leading-8 text-muted-foreground">
-                            Clothing
+                {products.length == 0 ? (
+                    <div>
+                        <p className="text-base font-normal text-muted-foreground">
+                            No products found
                         </p>
-                        <h2 className="mb-3 text-lg font-semibold leading-tight">
-                            Baju Pramuka
-                        </h2>
-                        <div className="flex items-center justify-between">
-                            <h3 className="text-base font-semibold leading-tight text-secondary">
-                                Rp500.000
-                            </h3>
-                            <div className="group">
-                                <div className="p-2 transition-all border rounded-full shadow-md bg-secondary/10 group-hover:bg-secondary">
-                                    <ShoppingCart className="transition-all text-secondary group-hover:text-primary-foreground" />
-                                </div>
-                            </div>
-                        </div>
-                    </Link>
-                    <Link
-                        href={""}
-                        className="p-4 transition-all border rounded-lg shadow-lg bg-card text-card-foreground hover:shadow-xl"
-                    >
-                        <img
-                            src="/images/product1.jpg"
-                            alt="product1"
-                            className="object-cover w-full mb-2 rounded-xl h-60"
-                        />
-                        <p className="text-sm font-normal leading-8 text-muted-foreground">
-                            Clothing
-                        </p>
-                        <h2 className="mb-3 text-lg font-semibold leading-tight">
-                            Baju Pramuka
-                        </h2>
-                        <div className="flex items-center justify-between">
-                            <h3 className="text-base font-semibold leading-tight text-secondary">
-                                Rp500.000
-                            </h3>
-                            <div className="group">
-                                <div className="p-2 transition-all border rounded-full shadow-md bg-secondary/10 group-hover:bg-secondary">
-                                    <ShoppingCart className="transition-all text-secondary group-hover:text-primary-foreground" />
-                                </div>
-                            </div>
-                        </div>
-                    </Link>
-                    <Link
-                        href={""}
-                        className="p-4 transition-all border rounded-lg shadow-lg bg-card text-card-foreground hover:shadow-xl"
-                    >
-                        <img
-                            src="/images/product1.jpg"
-                            alt="product1"
-                            className="object-cover w-full mb-2 rounded-xl h-60"
-                        />
-                        <p className="text-sm font-normal leading-8 text-muted-foreground">
-                            Clothing
-                        </p>
-                        <h2 className="mb-3 text-lg font-semibold leading-tight">
-                            Baju Pramuka
-                        </h2>
-                        <div className="flex items-center justify-between">
-                            <h3 className="text-base font-semibold leading-tight text-secondary">
-                                Rp500.000
-                            </h3>
-                            <div className="group">
-                                <div className="p-2 transition-all border rounded-full shadow-md bg-secondary/10 group-hover:bg-secondary">
-                                    <ShoppingCart className="transition-all text-secondary group-hover:text-primary-foreground" />
-                                </div>
-                            </div>
-                        </div>
-                    </Link>
-                    <Link
-                        href={""}
-                        className="p-4 transition-all border rounded-lg shadow-lg bg-card text-card-foreground hover:shadow-xl"
-                    >
-                        <img
-                            src="/images/product1.jpg"
-                            alt="product1"
-                            className="object-cover w-full mb-2 rounded-xl h-60"
-                        />
-                        <p className="text-sm font-normal leading-8 text-muted-foreground">
-                            Clothing
-                        </p>
-                        <h2 className="mb-3 text-lg font-semibold leading-tight">
-                            Baju Pramuka
-                        </h2>
-                        <div className="flex items-center justify-between">
-                            <h3 className="text-base font-semibold leading-tight text-secondary">
-                                Rp500.000
-                            </h3>
-                            <div className="group">
-                                <div className="p-2 transition-all border rounded-full shadow-md bg-secondary/10 group-hover:bg-secondary">
-                                    <ShoppingCart className="transition-all text-secondary group-hover:text-primary-foreground" />
-                                </div>
-                            </div>
-                        </div>
-                    </Link>
-                </div>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 mb-[72px]">
+                        {products.map((product, index) => (
+                            <ProductCard key={product.id} product={product} />
+                        ))}
+                    </div>
+                )}
             </section>
-        </>
+        </MainLayout>
+    );
+};
+
+const FilterSheet = ({
+    categories,
+    categoryParams,
+    handleCategoryClick,
+}: {
+    categories: Category[];
+    categoryParams: string;
+    handleCategoryClick: (categoryName: string) => void;
+}) => {
+    return (
+        <Sheet>
+            <SheetTrigger className={cn(buttonVariants(), "mr-4 mt-4 gap-x-2")}>
+                Filters <Plus />
+            </SheetTrigger>
+            <SheetContent>
+                <SheetHeader>
+                    <SheetTitle className="pb-4 border-b border-gray-300 text-secondary">
+                        Categories
+                    </SheetTitle>
+                    <SheetDescription className="pt-3 mx-auto space-x-2">
+                        {categories?.map((category, i) => (
+                            <Button
+                                key={i}
+                                variant={
+                                    category.name.toLowerCase() ==
+                                    categoryParams
+                                        ? "default"
+                                        : "outline"
+                                }
+                                onClick={() =>
+                                    handleCategoryClick(
+                                        category.name.toLowerCase()
+                                    )
+                                }
+                            >
+                                {category.name}
+                            </Button>
+                        ))}
+                    </SheetDescription>
+                </SheetHeader>
+            </SheetContent>
+        </Sheet>
     );
 };
 

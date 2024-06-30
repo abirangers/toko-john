@@ -15,7 +15,7 @@ class HomeController extends Controller
     public function index()
     {
         $categories = Category::with('products')->get();
-        $products = Product::with('category')->get();
+        $products = Product::with('category')->limit(8)->get();
 
         return Inertia::render('Home/Index', [
             'categories' => $categories,

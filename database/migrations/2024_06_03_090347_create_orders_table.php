@@ -12,12 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('orders', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->uuid('user_id');
-            $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
+            $table->id();
+            $table->string('order_code')->unique();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->decimal('total_price', 12, 2);
-            $table->enum('status', ['pending', 'completed', 'cancelled'])->default('pending');
+            $table->enum('status', ['pending', 'completed', 'canceled'])->default('pending');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
