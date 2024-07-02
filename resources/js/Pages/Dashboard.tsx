@@ -1,22 +1,23 @@
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head } from '@inertiajs/react';
-import { PageProps } from '@/types';
-import DashboardLayout from '@/Layouts/DashboardLayout';
+import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
+import { Head } from "@inertiajs/react";
+import { PageProps } from "@/types";
+import DashboardLayout from "@/Layouts/DashboardLayout";
+import BreadcrumbWrapper from "@/Components/BreadcrumbWrapper";
+import { Button } from "@/Components/ui/button";
 
 export default function Dashboard({ auth }: PageProps) {
     return (
-        <DashboardLayout
-            user={auth.user}
-        >
+        <DashboardLayout>
             <Head title="Dashboard" />
-
-            <div className="py-12">
-                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                    <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
-                        <div className="p-6 text-gray-900">You're logged in!</div>
-                    </div>
+            <div className="flex justify-between py-4 border-b-[1.5px]">
+                <div>
+                    <h1 className="text-3xl font-bold ">Dashboard</h1>
+                    <p className="text-sm text-muted-foreground">
+                        Welcome to the dashboard
+                    </p>
                 </div>
             </div>
+            <div className="mt-4"></div>
         </DashboardLayout>
     );
 }

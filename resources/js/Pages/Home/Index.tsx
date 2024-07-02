@@ -3,6 +3,7 @@ import HeroSection from "@/Pages/Home/Section/Hero";
 import FeaturedCategoriesSection from "@/Pages/Home/Section/FeaturedCategories";
 import PopularProducts from "@/Pages/Home/Section/PopularProducts";
 import MainLayout from "@/Layouts/MainLayout";
+import { usePage } from "@inertiajs/react";
 
 const HomePage = ({
     auth,

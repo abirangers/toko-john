@@ -9,11 +9,34 @@ export interface User {
     carts: Cart[];
 }
 
+export interface Major {
+    id: number;
+    name: string;
+    short_name: string;
+    slug: string;
+}
+
+export interface Class {
+    id: number;
+    name: string;
+    slug: string;
+    major: Major;
+}
+
 export interface Category {
     id: number;
     name: string;
     products: Product[];
     slug: string;
+}
+
+export interface Media {
+    id: number;
+    name: string;
+    path: string;
+    user: User;
+    created_at: string;
+    updated_at: string;
 }
 
 export interface Product {
