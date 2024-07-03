@@ -1,38 +1,13 @@
 <?php
-
-use App\Http\Controllers\Admin\CategoryCrudController;
-use App\Http\Controllers\Admin\ClassCrudController;
 use App\Http\Controllers\Admin\MajorCrudController;
-use App\Http\Controllers\Admin\MediaCrudController;
+use App\Http\Controllers\Admin\ClassCrudController;
+use App\Http\Controllers\Admin\CategoryCrudController;
 use App\Http\Controllers\Admin\ProductCrudController;
 use App\Http\Controllers\Admin\UserCrudController;
-use App\Http\Controllers\CartController;
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\OrderController;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\ProfileController;
-use Illuminate\Foundation\Application;
-use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
+use App\Http\Controllers\Admin\RoleCrudController;
+use App\Http\Controllers\Admin\PermissionCrudController;
+use App\Http\Controllers\Admin\PermissionGroupCrudController;
 
-// Route::get('/', function () {
-//     return Inertia::render('Welcome', [
-//         'canLogin' => Route::has('login'),
-//         'canRegister' => Route::has('register'),
-//         'laravelVersion' => Application::VERSION,
-//         'phpVersion' => PHP_VERSION,
-//     ]);
-// });
-
-Route::get('/admin/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('admin.dashboard');
-
-Route::prefix('admin')->middleware(['auth', 'verified'])->group(function () {
-    Route::get('media', [MediaCrudController::class, 'index'])->name('admin.media.index');
-    Route::post('media', [MediaCrudController::class, 'store'])->name('admin.media.store');
-    Route::delete('media/bulk-destroy', [MediaCrudController::class, 'bulkDestroy'])->name('admin.media.bulkDestroy');
-    Route::delete('media/{id}', [MediaCrudController::class, 'destroy'])->middleware(['auth', 'verified'])->name('admin.media.destroy');
 
     Route::delete('majors/bulk-destroy', [MajorCrudController::class, 'bulkDestroy'])->name('admin.majors.bulkDestroy');
     Route::resource('majors', MajorCrudController::class)->names([
@@ -66,7 +41,7 @@ Route::prefix('admin')->middleware(['auth', 'verified'])->group(function () {
         'update' => 'admin.categories.update',
         'destroy' => 'admin.categories.destroy',
     ]);
-    
+
 
     Route::delete('products/bulk-destroy', [ProductCrudController::class, 'bulkDestroy'])->name('admin.products.bulkDestroy');
     Route::resource('products', ProductCrudController::class)->names([
@@ -90,22 +65,36 @@ Route::prefix('admin')->middleware(['auth', 'verified'])->group(function () {
         'destroy' => 'admin.users.destroy',
     ]);
 
-});
+    Route::delete('roles/bulk-destroy', [RoleCrudController::class, 'bulkDestroy'])->name('admin.roles.bulkDestroy');
+    Route::resource('roles', RoleCrudController::class)->names([
+        'index' => 'admin.roles.index',
+        'create' => 'admin.roles.create',
+        'store' => 'admin.roles.store',
+        'show' => 'admin.roles.show',
+        'edit' => 'admin.roles.edit',
+        'update' => 'admin.roles.update',
+        'destroy' => 'admin.roles.destroy',
+    ]);
 
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::delete('permissions/bulk-destroy', [PermissionCrudController::class, 'bulkDestroy'])->name('admin.permissions.bulkDestroy');
+    Route::resource('permissions', PermissionCrudController::class)->names([
+        'index' => 'admin.permissions.index',
+        'create' => 'admin.permissions.create',
+        'store' => 'admin.permissions.store',
+        'show' => 'admin.permissions.show',
+        'edit' => 'admin.permissions.edit',
+        'update' => 'admin.permissions.update',
+        'destroy' => 'admin.permissions.destroy',
+    ]);
 
-    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
-    Route::post('/cart', [CartController::class, 'store'])->name('cart.store');
-    Route::post('/cart/add', [CartController::class, 'addToCart'])->name('cart.addToCart');
-    Route::delete('/cart/remove/{productId}', [CartController::class, 'removeFromCart'])->name('cart.removeFromCart');
-    Route::get('/orders', [OrderController::class, 'index'])->name('order.index');
-});
-
-Route::get('/', [HomeController::class, 'index'])->name('home.index');
-Route::get('/products', [ProductController::class, 'index'])->name('product.index');
-Route::get('/products/{slug}', [ProductController::class, 'show'])->name('product.show');
-
+    Route::delete('permission-groups/bulk-destroy', [PermissionGroupCrudController::class, 'bulkDestroy'])->name('admin.permission-groups.bulkDestroy');
+    Route::resource('permission-groups', PermissionGroupCrudController::class)->names([
+        'index' => 'admin.permission-groups.index',
+        'create' => 'admin.permission-groups.create',
+        'store' => 'admin.permission-groups.store',
+        'show' => 'admin.permission-groups.show',
+        'edit' => 'admin.permission-groups.edit',
+        'update' => 'admin.permission-groups.update',
+        'destroy' => 'admin.permission-groups.destroy',
+    ]);
 require __DIR__ . '/auth.php';

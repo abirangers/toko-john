@@ -20,6 +20,9 @@ import {
     Package,
     List,
     User as UserIcon,
+    UserCheck,
+    Shield,
+    Lock,
 } from "lucide-react";
 import {
     Accordion,
@@ -177,14 +180,38 @@ export default function DashboardLayout({ children }: PropsWithChildren) {
                                                 Authentication
                                             </div>
                                         </AccordionTrigger>
-                                        <AccordionContent className="px-0 pl-4">
+                                        <AccordionContent className="px-4 space-y-2">
                                             <DashboardLink
                                                 href="admin.users.index"
                                                 name="Users"
                                                 icon={
                                                     <UserIcon className="w-5 h-5 mr-2" />
                                                 }
-                                                className="px-0"
+                                                className="focus:outline-none"
+                                            />
+                                            <DashboardLink
+                                                href="admin.roles.index"
+                                                name="Roles"
+                                                icon={
+                                                    <UserCheck className="w-5 h-5 mr-2" />
+                                                }
+                                                className="focus:outline-none"
+                                            />
+                                            <DashboardLink
+                                                href="admin.permissions.index"
+                                                name="Permissions"
+                                                icon={
+                                                    <Shield className="w-5 h-5 mr-2" />
+                                                }
+                                                className="focus:outline-none"
+                                            />
+                                            <DashboardLink
+                                                href="admin.permission-groups.index"
+                                                name="Permission Groups"
+                                                icon={
+                                                    <Lock className="w-5 h-5 mr-2" />
+                                                }
+                                                className="focus:outline-none"
                                             />
                                         </AccordionContent>
                                     </AccordionItem>

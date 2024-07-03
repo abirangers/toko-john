@@ -4,9 +4,33 @@ export interface User {
     id: number;
     name: string;
     email: string;
+    password: string;
     email_verified_at: string;
     slug: string;
     carts: Cart[];
+    role: Role;
+}
+
+export interface Role {
+    id: number;
+    name: string;
+    display_name: string;
+    guard_name: string;
+    permissions: Permission[];
+}
+
+export interface PermissionGroup {
+    id: number;
+    name: string;
+    permissions: Permission[];
+}
+
+export interface Permission {
+    id: number;
+    name: string;
+    display_name: string;
+    group_name: string;
+    guard_name: string;
 }
 
 export interface Major {
@@ -77,7 +101,9 @@ export interface Cart {
     cart_items: CartItem[];
 }
 
-export type PageProps<T extends Record<string, unknown> = Record<string, unknown>> = T & {
+export type PageProps<
+    T extends Record<string, unknown> = Record<string, unknown>
+> = T & {
     auth: {
         user: User;
     };

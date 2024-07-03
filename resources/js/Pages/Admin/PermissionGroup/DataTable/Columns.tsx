@@ -1,10 +1,10 @@
-import { User } from "@/types";
+import { PermissionGroup } from "@/types";
 import { ColumnDef } from "@tanstack/react-table";
 import { CellAction } from "./CellAction";
 import { Checkbox } from "@/Components/ui/checkbox";
 import { DataTableColumnHeader } from "@/Components/DataTable/DataTableColumnHeader";
 
-export const columns: ColumnDef<User>[] = [
+export const columns: ColumnDef<PermissionGroup>[] = [
     {
         id: "select",
         header: ({ table }) => {
@@ -45,23 +45,6 @@ export const columns: ColumnDef<User>[] = [
             return <DataTableColumnHeader column={column} title="Name" />;
         },
     },
-    {
-        accessorKey: "email",
-        header: ({ column }) => {
-            return <DataTableColumnHeader column={column} title="Email" />;
-        },
-    },
-    {
-        accessorKey: "roles",
-        cell: ({ row }) => {
-            console.log(row);
-            return row.original.roles.map(role => role.name).join(", ");
-        },
-        header: ({ column }) => {
-            return <DataTableColumnHeader column={column} title="Roles" />;
-        },
-    },
-
     {
         id: "actions",
         header: "Actions",

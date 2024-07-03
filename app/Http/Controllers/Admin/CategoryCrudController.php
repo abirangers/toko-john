@@ -98,7 +98,7 @@ class CategoryCrudController extends Controller
             'ids' => 'required|array',
             'ids.*' => 'required|exists:categories,id',
         ]);
-        
+
         $ids = $request->input('ids', []);
         $categories = Category::whereIn('id', $ids)->get();
         foreach ($categories as $category) {

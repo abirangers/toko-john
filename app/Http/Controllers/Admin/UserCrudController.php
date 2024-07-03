@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Illuminate\Support\Facades\Hash;
+use App\Models\User;
+use Spatie\Permission\Models\Role;
 
 class UserCrudController extends Controller
 {
@@ -15,10 +15,8 @@ class UserCrudController extends Controller
      */
     public function index()
     {
-        $users = User::all();
-        return Inertia::render('Admin/User/Index', [
-            'users' => $users,
-        ]);
+        $users = User::with('roles')->get();
+        return Inertia::render('Admin/User/Index', compact('users'));
     }
 
     /**
@@ -26,7 +24,8 @@ class UserCrudController extends Controller
      */
     public function create()
     {
-        return Inertia::render('Admin/User/Manage');
+        $roles = Role::all();
+        return Inertia::render('Admin/User/Manage', compact('roles'));
     }
 
     /**
@@ -34,20 +33,23 @@ class UserCrudController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8',
-            'confirm_password' => 'required|string|same:password',
+            'password' => 'required|string|min:8|same:confirm_password',
+            'confirm_password' => 'required|string|min:8|same:password',
+            'role' => 'required|exists:roles,name',
         ]);
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'name' => $validatedData['name'],
+            'email' => $validatedData['email'],
+            'password' => bcrypt($validatedData['password']),
         ]);
 
-        return redirect()->route('admin.users.index')->with('success', 'User created');
+        $user->assignRole($validatedData['role']);
+
+        return redirect()->route('admin.users.index')->with('success', 'User created successfully.');
     }
 
     /**
@@ -55,13 +57,11 @@ class UserCrudController extends Controller
      */
     public function show(string $id)
     {
-        $user = User::find($id);
+        $user = User::with('roles')->find($id);
         if (!$user) {
-            return redirect()->route('admin.users.index')->with('error', 'User not found');
+            return redirect()->route('admin.users.index')->with('error', 'User not found.');
         }
-        return Inertia::render('Admin/User/Show', [
-            'user' => $user,
-        ]);
+        return Inertia::render('Admin/User/Manage', compact('user'));
     }
 
     /**
@@ -69,13 +69,12 @@ class UserCrudController extends Controller
      */
     public function edit(string $id)
     {
-        $user = User::find($id);
+        $roles = Role::all();
+        $user = User::with('roles')->find($id);
         if (!$user) {
-            return redirect()->route('admin.users.index')->with('error', 'User not found');
+            return redirect()->route('admin.users.index')->with('error', 'User not found.');
         }
-        return Inertia::render('Admin/User/Manage', [
-            'user' => $user,
-        ]);
+        return Inertia::render('Admin/User/Manage', compact('user', 'roles'));
     }
 
     /**
@@ -86,8 +85,24 @@ class UserCrudController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $id,
-            'password' => 'nullable|string|min:8',
+            'password' => 'nullable|string|min:8|same:confirm_password',
+            'confirm_password' => 'nullable|string|min:8|same:password',
+            'role' => 'required|exists:roles,name',
         ]);
+
+        $user = User::find($id);
+        if (!$user) {
+            return redirect()->route('admin.users.index')->with('error', 'User not found.');
+        }
+        $user->update([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => bcrypt($request->password),
+        ]);
+
+        $user->syncRoles($request->role);
+
+        return redirect()->route('admin.users.index')->with('success', 'User updated successfully.');
     }
 
     /**
@@ -97,10 +112,10 @@ class UserCrudController extends Controller
     {
         $user = User::find($id);
         if (!$user) {
-            return redirect()->route('admin.users.index')->with('error', 'User not found');
+            return redirect()->route('admin.users.index')->with('error', 'User not found.');
         }
         $user->delete();
-        return redirect()->route('admin.users.index')->with('success', 'User deleted');
+        return redirect()->route('admin.users.index')->with('success', 'User deleted successfully.');
     }
 
     public function bulkDestroy(Request $request)
@@ -110,11 +125,12 @@ class UserCrudController extends Controller
             'ids.*' => 'required|exists:users,id',
         ]);
 
-        $ids = $request->input('ids', []);
+        $ids = $request->input('ids');
         $users = User::whereIn('id', $ids)->get();
         foreach ($users as $user) {
             $user->delete();
         }
-        return redirect()->route('admin.users.index')->with('success', 'Users deleted');
+        
+        return redirect()->route('admin.users.index')->with('success', 'Users deleted successfully.');
     }
 }

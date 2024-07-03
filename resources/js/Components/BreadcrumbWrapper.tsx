@@ -25,7 +25,6 @@ const BreadcrumbWrapper: React.FC = () => {
                     const linkName =
                         name.charAt(0).toUpperCase() + name.slice(1);
                     const isLast = index === pathnames.length - 1;
-                    console.log(routeTo);
                     return (
                         <React.Fragment key={index}>
                             <BreadcrumbItem>
