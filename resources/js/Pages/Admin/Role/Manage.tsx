@@ -99,7 +99,6 @@ export default function ManageRole({ role }: { role: Role }) {
                 </div>
                 <Button
                     type="submit"
-                    className="rounded-md"
                     disabled={form.processing}
                 >
                     {role ? "Update Role" : "Add Role"}

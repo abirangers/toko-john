@@ -15,7 +15,6 @@ export default function ShowPermission({ permission }: { permission: Permission 
                     </p>
                 </div>
                 <Button
-                    className="rounded-md"
                     size="sm"
                     onClick={() =>
                         router.get(route("admin.permissions.edit", permission.id))
@@ -25,7 +24,7 @@ export default function ShowPermission({ permission }: { permission: Permission 
                     Edit
                 </Button>
             </div>
-            <div className="mt-4">
+            <div className="mt-4 text-secondary">
                 <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700">
                         Permission Name

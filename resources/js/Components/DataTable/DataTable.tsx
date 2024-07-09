@@ -65,9 +65,9 @@ export function DataTable<TData extends Idnetifiable, TValue>({
 
     const handleBulkDelete = () => {
         const selectedIds = Object.keys(rowSelection)
-        .filter((key) => rowSelection[key])
-        .map((key) => data[parseInt(key)].id);
-        
+            .filter((key) => rowSelection[key])
+            .map((key) => data[parseInt(key)].id);
+
         setDeleting(true);
 
         bulkDelete({
@@ -93,7 +93,7 @@ export function DataTable<TData extends Idnetifiable, TValue>({
                 rowSelection={rowSelection}
                 setOpen={setOpen}
             />
-            <div className="border rounded-md">
+            <div className="border rounded-md text-secondary">
                 <Table>
                     <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (
@@ -115,19 +115,11 @@ export function DataTable<TData extends Idnetifiable, TValue>({
                     <TableBody>
                         {table.getRowModel().rows?.length ? (
                             table.getRowModel().rows.map((row) => {
-                                const isHenriManampiring =
-                                    (row.original as { author: string })
-                                        .author === "Henri Manampiring";
                                 return (
                                     <TableRow
                                         key={row.id}
                                         data-state={
                                             row.getIsSelected() && "selected"
-                                        }
-                                        className={
-                                            isHenriManampiring
-                                                ? "bg-red-500 hover:bg-red-600"
-                                                : ""
                                         }
                                     >
                                         {row.getVisibleCells().map((cell) => (

@@ -44,11 +44,10 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                 <DialogTitle>{title}</DialogTitle>
                 <DialogDescription>{description}</DialogDescription>
                 <DialogFooter>
-                    <Button className="rounded-md" variant="ghost" onClick={() => onOpenChange(false)}>
+                    <Button variant="ghost" onClick={() => onOpenChange(false)}>
                         {cancelText}
                     </Button>
                     <Button
-                    className="rounded-md"
                         variant={confirmVariant as any}
                         onClick={onConfirm}
                         disabled={confirmDisabled}

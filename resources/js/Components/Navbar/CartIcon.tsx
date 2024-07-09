@@ -6,7 +6,9 @@ import { cn } from "@/lib/utils";
 import { PageProps } from "@/types";
 
 const CartIcon = () => {
-    const { auth } = usePage().props as unknown as PageProps<{ auth: { user: { carts: { cart_items: { length: number }[] }[] } } }>;
+    const { auth } = usePage().props as unknown as PageProps<{
+        auth: { user: { carts: { cart_items: { length: number }[] }[] } };
+    }>;
     const totalCartItems = auth.user?.carts[0]?.cart_items.length || 0;
 
     return (
@@ -16,7 +18,7 @@ const CartIcon = () => {
                     size: "sm",
                     variant: "outline",
                 }),
-                "gap-x-1"
+                "gap-x-1 text-secondary rounded-full"
             )}
             aria-label="items-in-cart"
             href={route("cart.index")}

@@ -20,7 +20,9 @@ const DesktopNav = () => {
             <NavigationMenu>
                 <NavigationMenuList>
                     <NavigationMenuItem>
-                        <NavigationMenuTrigger>Lobby</NavigationMenuTrigger>
+                        <NavigationMenuTrigger className="text-secondary">
+                            Lobby
+                        </NavigationMenuTrigger>
                         <NavigationMenuContent>
                             <ul className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
                                 <li className="row-span-3">
@@ -30,19 +32,18 @@ const DesktopNav = () => {
                                             href="/"
                                         >
                                             <img
-                                                src="/images/logo.png"
-                                                alt="logo penus"
+                                                src="/images/logo.jpeg"
+                                                alt="logo"
                                                 loading="lazy"
-                                                width={24}
-                                                height={24}
+                                                width={26}
+                                                height={26}
                                             />
                                             <div className="mt-4 mb-2 text-sm font-medium">
-                                                E-PENUS
+                                                John Production
                                             </div>
                                             <p className="text-sm leading-tight text-muted-foreground">
-                                                An open source ecommerce penus
-                                                built with everything in Laravel
-                                                + Inertia
+                                                High quality hospital equipment
+                                                at competitive prices.
                                             </p>
                                         </a>
                                     </NavigationMenuLink>
@@ -86,7 +87,7 @@ const DesktopNav = () => {
                         </NavigationMenuContent>
                     </NavigationMenuItem>
                     <NavigationMenuItem>
-                        <NavigationMenuTrigger>
+                        <NavigationMenuTrigger className="text-secondary">
                             Categories
                         </NavigationMenuTrigger>
                         <NavigationMenuContent>
@@ -97,13 +98,13 @@ const DesktopNav = () => {
                                             className={cn(
                                                 "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                                             )}
-                                            href="/products?category=clothing"
+                                            href="/products?category=bed"
                                         >
                                             <div className="text-sm font-medium leading-none">
-                                                Clothing
+                                                Bed
                                             </div>
                                             <p className="text-sm leading-snug line-clamp-2 text-muted-foreground">
-                                                Explore the clothing category
+                                                Explore the Bed category
                                             </p>
                                         </a>
                                     </NavigationMenuLink>
@@ -114,13 +115,13 @@ const DesktopNav = () => {
                                             className={cn(
                                                 "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                                             )}
-                                            href="/products?category=accessories"
+                                            href="/products?category=trolley"
                                         >
                                             <div className="text-sm font-medium leading-none">
-                                                Accessories
+                                                Trolley
                                             </div>
                                             <p className="text-sm leading-snug line-clamp-2 text-muted-foreground">
-                                                Explore the accessories category
+                                                Explore the Trolley category
                                             </p>
                                         </a>
                                     </NavigationMenuLink>
@@ -131,13 +132,13 @@ const DesktopNav = () => {
                                             className={cn(
                                                 "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                                             )}
-                                            href="/products?category=shoes"
+                                            href="/products?category=cabinet"
                                         >
                                             <div className="text-sm font-medium leading-none">
-                                                Shoes
+                                                Cabinet
                                             </div>
                                             <p className="text-sm leading-snug line-clamp-2 text-muted-foreground">
-                                                Explore the shoes category
+                                                Explore the Cabinet category
                                             </p>
                                         </a>
                                     </NavigationMenuLink>

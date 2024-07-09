@@ -16,9 +16,8 @@ return new class extends Migration
             $table->string('order_code')->unique();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->decimal('total_price', 12, 2);
-            $table->enum('status', ['pending', 'completed', 'canceled'])->default('pending');
+            $table->enum('status', ['pending', 'paid', 'cancelled'])->default('pending');
             $table->timestamps();
-            $table->softDeletes();
         });
     }
 

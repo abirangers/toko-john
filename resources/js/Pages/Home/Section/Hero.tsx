@@ -19,23 +19,25 @@ const HeroSection = () => {
             </svg>
 
             <div className="min-h-[512px] flex items-end justify-center px-8 pt-24 mx-auto sm:pt-32 md:pt-16 max-w-7xl">
-                <div className="flex flex-col items-center justify-between w-full gap-x-9 md:flex-row">
+                <div className="flex flex-col items-center justify-between flex-shrink-0 w-full gap-x-9 md:flex-row">
                     {/*=============== Hero Title ==================*/}
                     <div className="w-full max-w-2xl">
                         <h1 className="mx-auto mb-4 text-3xl font-bold tracking-tighter text-center lg:leading-tight sm:leading-tight max-w-96 sm:max-w-max lg:text-6xl sm:text-5xl sm:text-left">
-                            Beli Seragam Tanpa Ribet?{" "}
-                            <span className="text-secondary">E-PENUS!</span>{" "}
+                            High-quality hospital equipment available
                         </h1>
                         <p className="mx-auto mb-4 text-sm font-normal text-center max-w-96 sm:max-w-max sm:text-left sm:leading-8 sm:text-xl text-muted-foreground">
-                            E-PENUS memperkenalkan solusi e-commerce untuk
-                            kebutuhan seragam dan atribut sekolah. Belanja jadi
-                            lebih praktis dan efisien.
+                            Provides a wide range of high-quality hospital
+                            equipment, from beds to examination and delivery
+                            equipment
                         </p>
 
                         <div className="flex justify-center gap-x-4 sm:justify-start">
                             <Link
                                 href={route("product.index")}
-                                className={cn(buttonVariants({ size: "sm" }))}
+                                className={cn(
+                                    buttonVariants({ size: "sm" }),
+                                    "rounded-full"
+                                )}
                             >
                                 Buy now
                             </Link>
@@ -45,7 +47,8 @@ const HeroSection = () => {
                                     buttonVariants({
                                         size: "sm",
                                         variant: "outline",
-                                    })
+                                    }),
+                                    "rounded-full"
                                 )}
                             >
                                 Browse Products
@@ -54,13 +57,14 @@ const HeroSection = () => {
                     </div>
 
                     {/*=============== Hero Image ==================*/}
-                    <div className="w-[332px]">
+                    <div className="relative w-[500px] h-[500px] overflow-hidden rounded-full shadow-lg">
                         <img
-                            src="/images/hero-image.png"
+                            src="/images/hero-image.jpg"
                             alt="hero-image"
                             loading="lazy"
-                            className="h-full"
+                            className="object-cover w-full h-full"
                         />
+                        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black opacity-30"></div>
                     </div>
                 </div>
             </div>

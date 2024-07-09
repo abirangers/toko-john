@@ -4,7 +4,7 @@ import DashboardLayout from "@/Layouts/DashboardLayout";
 import { Button } from "@/Components/ui/button";
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
-import { Category, Major } from "@/types";
+import { Category } from "@/types";
 import { toast } from "sonner";
 import BreadcrumbWrapper from "@/Components/BreadcrumbWrapper";
 
@@ -48,7 +48,7 @@ export default function ManageCategory({ category }: { category: Category }) {
                     </p>
                 </div>
             </div>
-            <form onSubmit={handleSubmit} className="mt-4">
+            <form onSubmit={handleSubmit} className="mt-4 text-secondary">
                 <div className="mb-4">
                     <Label htmlFor="name">
                         Name<span className="text-red-600">*</span>
@@ -66,7 +66,6 @@ export default function ManageCategory({ category }: { category: Category }) {
                 </div>
                 <Button
                     type="submit"
-                    className="rounded-md"
                     disabled={form.processing}
                 >
                     {category ? "Update Category" : "Add Category"}

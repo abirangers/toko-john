@@ -1,7 +1,7 @@
 import { DataTable } from "@/Components/DataTable/DataTable";
 import { Button } from "@/Components/ui/button";
 import DashboardLayout from "@/Layouts/DashboardLayout";
-import { Category, Major } from "@/types";
+import { Category } from "@/types";
 import { router } from "@inertiajs/react";
 import { Plus } from "lucide-react";
 import React, { useMemo } from "react";
@@ -22,7 +22,6 @@ const IndexCategory = ({ categories }: { categories: Category[] }) => {
                     </p>
                 </div>
                 <Button
-                    className="rounded-md"
                     size="sm"
                     onClick={() => router.get(route("admin.categories.create"))}
                 >

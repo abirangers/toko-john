@@ -23,7 +23,6 @@ const IndexMedia = ({ medias }: { medias: Media[] }) => {
                     </p>
                 </div>
                 <Button
-                    className="rounded-md"
                     size="sm"
                     onClick={(e) => {
                         e.preventDefault();

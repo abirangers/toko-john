@@ -1,79 +1,43 @@
-import { CartItem as CartItemType, PageProps } from "@/types";
+import { Cart, PageProps, User } from "@/types";
 import CartItem from "@/Pages/Cart/CartItem";
-import OrderSummary from "@/Pages/Cart/OrderSummary";
+import CartSummary from "@/Pages/Cart/CartSummary";
 import MainLayout from "@/Layouts/MainLayout";
 import { router, useForm } from "@inertiajs/react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
-const CartPage = ({
-    auth,
-    cartItems,
-}: PageProps<{ cartItems: CartItemType[] }>) => {
-    const [isOpen, setIsOpen] = useState(false);
-    const [isOrderSuccessful, setIsOrderSuccessful] = useState(false);
-    const form = useForm({ cartItems });
+const CartPage = ({ auth, cart }: PageProps<{ cart: Cart }>) => {
+    const [isDisabled, setIsDisabled] = useState(false);
 
-    useEffect(() => {
-        if (form.errors) {
-            Object.values(form.errors).forEach((error: any) => {
-                toast.error(error);
-            });
-        }
-    }, [form.errors]);
-
-    const handleSubmit = (
-        e: React.MouseEvent<HTMLButtonElement, MouseEvent>
-    ) => {
-        e.preventDefault();
-
-        if (!auth.user) {
-            router.visit("/login");
-            return;
-        }
-
-        try {
-            form.post(route("cart.store"), {
-                onSuccess: async (params) => {
-                    const flash = params.props.flash as {
-                        error: string;
-                    };
-
-                    if (flash.error) {
-                        toast.error(flash.error);
-                        return;
-                    }
-
-                    setIsOrderSuccessful(true);
-                    setIsOpen(true);
+    const handleSubmit = () => {
+        setIsDisabled(true);
+        router.post(
+            route("cart.store"),
+            { cart_id: cart?.id },
+            {
+                onFinish: () => {
+                    setIsDisabled(false);
                 },
-            });
-        } catch (e) {
-            toast.error("Failed to send cart to server");
-            console.log(e);
-        }
+            }
+        );
     };
-
-    useEffect(() => {
-        if (!isOpen && isOrderSuccessful) {
-            router.visit(route("order.index"));
-        }
-    }, [isOpen, isOrderSuccessful]);
 
     return (
         <MainLayout user={auth.user}>
-            <section className="px-8 py-16">
-                <h1 className="mb-2 text-3xl font-bold leading-tight">
+            <section className="px-8 py-8">
+                <h1 className="mb-8 text-4xl font-bold leading-tight text-center text-primary">
                     Shopping Cart
                 </h1>
 
                 <div className="flex flex-col mt-12 gap-y-14 lg:flex-row gap-x-12">
                     {/* Cart Item */}
                     <div className="w-full space-y-5 lg:w-3/5">
-                        {cartItems.length === 0 ? (
-                            <p>Your cart is empty.</p>
+                        {cart?.cart_items?.length === 0 ? (
+                            <p className="text-secondary">
+                                Your cart is empty.
+                            </p>
                         ) : (
-                            cartItems.map((item) => (
+                            cart?.cart_items?.map((item) => (
                                 <CartItem
                                     key={item.id}
                                     product={item.product}
@@ -84,17 +48,15 @@ const CartPage = ({
 
                     {/* right */}
                     <div className="w-full lg:w-2/5">
-                        <OrderSummary
-                            orderTotal={cartItems.reduce(
+                        <CartSummary
+                            orderTotal={cart?.cart_items?.reduce(
                                 (total, item) =>
                                     total + item.product.price * item.quantity,
                                 0
                             )}
-                            cartItems={cartItems}
-                            form={form}
+                            cartItems={cart?.cart_items}
                             handleSubmit={handleSubmit}
-                            isOpen={isOpen}
-                            setIsOpen={setIsOpen}
+                            isDisabled={isDisabled}
                         />
                     </div>
                 </div>

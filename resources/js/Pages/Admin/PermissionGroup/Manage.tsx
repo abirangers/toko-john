@@ -62,7 +62,7 @@ export default function ManagePermissionGroup({
                     </p>
                 </div>
             </div>
-            <form onSubmit={handleSubmit} className="mt-4">
+            <form onSubmit={handleSubmit} className="mt-4 text-secondary">
                 <div className="mb-4">
                     <Label htmlFor="display_name">
                         Name<span className="text-red-600">*</span>
@@ -88,7 +88,6 @@ export default function ManagePermissionGroup({
     
                 <Button
                     type="submit"
-                    className="rounded-md"
                     disabled={form.processing}
                 >
                     {permissionGroup ? "Update Permission Group" : "Add Permission Group"}

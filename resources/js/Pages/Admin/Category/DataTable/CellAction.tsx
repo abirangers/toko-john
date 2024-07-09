@@ -11,7 +11,7 @@ import { Trash, Edit, MoreHorizontal, Check, Eye } from "lucide-react";
 import { Button } from "@/Components/ui/button";
 import { router } from "@inertiajs/react";
 import { ConfirmDialog } from "@/Components/ConfirmDialog";
-import { Category, Major } from "@/types";
+import { Category } from "@/types";
 
 interface CellActionProps {
     data: Category;
@@ -45,12 +45,6 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    {data.author === "Henri Manampiring" && (
-                        <DropdownMenuItem>
-                            <Check className="w-4 h-4 mr-2" />
-                            Confirm
-                        </DropdownMenuItem>
-                    )}
                     <DropdownMenuItem
                         onClick={() =>
                             router.get(route("admin.categories.show", data.id))

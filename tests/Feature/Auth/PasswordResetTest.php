@@ -3,6 +3,9 @@
 namespace Tests\Feature\Auth;
 
 use App\Models\User;
+use Database\Seeders\PermissionGroupSeeder;
+use Database\Seeders\PermissionSeeder;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
@@ -12,10 +15,17 @@ class PasswordResetTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed(RoleSeeder::class); // Seed roles before each test
+        $this->seed(PermissionSeeder::class);
+        $this->seed(PermissionGroupSeeder::class);
+    }
+
     public function test_reset_password_link_screen_can_be_rendered(): void
     {
         $response = $this->get('/forgot-password');
-
         $response->assertStatus(200);
     }
 
@@ -24,6 +34,7 @@ class PasswordResetTest extends TestCase
         Notification::fake();
 
         $user = User::factory()->create();
+        $user->syncRoles('user');
 
         $this->post('/forgot-password', ['email' => $user->email]);
 
@@ -35,6 +46,7 @@ class PasswordResetTest extends TestCase
         Notification::fake();
 
         $user = User::factory()->create();
+        $user->syncRoles('user');
 
         $this->post('/forgot-password', ['email' => $user->email]);
 
@@ -52,6 +64,7 @@ class PasswordResetTest extends TestCase
         Notification::fake();
 
         $user = User::factory()->create();
+        $user->syncRoles('user');
 
         $this->post('/forgot-password', ['email' => $user->email]);
 

@@ -10,6 +10,7 @@ class Media extends Model
 {
     use HasFactory;
     
+    protected $table = 'media';
     protected $fillable = ['name', 'path', 'user_id'];
 
     public function user(): BelongsTo

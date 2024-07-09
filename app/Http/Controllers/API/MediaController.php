@@ -78,7 +78,7 @@ class MediaController extends Controller
         try {
             $validator = Validator::make($request->all(), [
                 'files' => 'required|array',
-                'files.*' => 'required|file|mimes:jpeg,png,jpg,bmp|max:1024',
+                'files.*' => 'required|file|mimes:jpeg,png,jpg,bmp|max:5120',
                 'user_id' => 'required|exists:users,id'
             ]);
 
@@ -90,7 +90,6 @@ class MediaController extends Controller
             $files = $request->file('files');
 
             foreach ($files as $file) {
-                Log::info($file->getClientOriginalName());
                 $fileName = Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '-' . time() . '.' . $file->getClientOriginalExtension();
                 $filePath = $file->storeAs('public/media', $fileName, 'public');
 

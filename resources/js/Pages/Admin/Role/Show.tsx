@@ -12,7 +12,7 @@ export default function ShowRole({
     permissionGroups,
 }: {
     role: Role;
-    rolePermissions: Permission[];
+    rolePermissions: string[];
     permissionGroups: PermissionGroup[];
 }) {
     const {
@@ -23,20 +23,32 @@ export default function ShowRole({
     } = useForm({ permissions: rolePermissions, fromShowPage: true });
 
     const handlePermissionChange = (permission: Permission) => {
-        if (selectedPermissions.includes(permission)) {
-            const index = selectedPermissions.indexOf(permission);
-            selectedPermissions.splice(index, 1);
+        const permissionName = permission.name;
+        if (selectedPermissions.includes(permissionName)) {
+            setData(
+                "permissions",
+                selectedPermissions.filter((name) => name !== permissionName)
+            );
         } else {
-            selectedPermissions.push(permission);
+            setData("permissions", [...selectedPermissions, permissionName]);
         }
+    };
 
-        setData("permissions", selectedPermissions);
+    const handleSelectAllChange = (checked: boolean) => {
+        if (checked) {
+            const allPermissionNames = permissionGroups.flatMap(
+                (group) => group.permissions.map((p) => p.name)
+            );
+            setData("permissions", allPermissionNames);
+        } else {
+            setData("permissions", []);
+        }
     };
 
     const handleSave = () => {
-        console.log("put");
         put(route("admin.roles.update", role.id), {
             preserveScroll: true,
+            data: { permissions: selectedPermissions, fromShowPage: true },
             onError: (e) => {
                 console.log(e);
                 toast.error("failed to update role permissions");
@@ -54,7 +66,6 @@ export default function ShowRole({
                     </p>
                 </div>
                 <Button
-                    className="rounded-md"
                     size="sm"
                     onClick={() =>
                         router.get(route("admin.roles.edit", role.id))
@@ -97,12 +108,29 @@ export default function ShowRole({
                                 Manage Role Permissions
                             </h3>
                             <Button
-                                className="rounded-md"
                                 size="sm"
                                 onClick={() => handleSave()}
                             >
                                 Save
                             </Button>
+                        </div>
+                        <div className="flex items-center gap-2 pt-4">
+                            <Checkbox
+                                onCheckedChange={handleSelectAllChange}
+                                checked={
+                                    selectedPermissions.length ===
+                                    permissionGroups.flatMap(
+                                        (group) => group.permissions
+                                    ).length
+                                }
+                                id="select-all"
+                            />
+                            <label
+                                className="cursor-pointer"
+                                htmlFor="select-all"
+                            >
+                                Select All
+                            </label>
                         </div>
                         <div className="grid grid-cols-1 gap-4 pt-4 md:grid-cols-2 lg:grid-cols-3">
                             {permissionGroups.map((permissionGroup, index) => (
@@ -127,13 +155,14 @@ export default function ShowRole({
                                                     <Checkbox
                                                         onCheckedChange={() =>
                                                             handlePermissionChange(
-                                                                permission.name
+                                                                permission
                                                             )
                                                         }
                                                         value={permission.name}
                                                         checked={selectedPermissions.includes(
                                                             permission.name
                                                         )}
+                                                        
                                                         name={permission.name}
                                                         id={permission.name}
                                                     />

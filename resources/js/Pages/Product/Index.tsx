@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import ProductCard from "@/Components/ProductCard";
 import { useState } from "react";
 import MainLayout from "@/Layouts/MainLayout";
+import { Input } from "@/Components/ui/input";
 
 interface ProductProps extends PageProps {
     products: Product[];
@@ -28,6 +29,7 @@ const ProductPage = ({ products, categories }: ProductProps) => {
     };
 
     const [_, setSelectedCategory] = useState(categoryParams);
+    const [searchTerm, setSearchTerm] = useState("");
 
     const handleCategoryClick = (categoryName: string) => {
         setSelectedCategory(categoryName);
@@ -38,25 +40,42 @@ const ProductPage = ({ products, categories }: ProductProps) => {
         );
     };
 
+    const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchTerm(e.target.value);
+    };
+
+    const filteredProducts = products.filter((product) =>
+        product.title.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     return (
         <MainLayout user={auth.user}>
             <section className="px-8 pt-10">
-                <div className="mb-6">
-                    <h2 className="mb-1 text-3xl font-bold tracking-tighter text-secondary">
-                        Products ({products.length})
-                    </h2>
-                    <p className="text-sm font-normal text-muted-foreground">
-                        Jelajahi semua produk yang kami tawarkan dari SMK Plus
-                        Pelita Nusantara!
-                    </p>
-                    <FilterSheet
-                        categories={categories}
-                        categoryParams={categoryParams}
-                        handleCategoryClick={handleCategoryClick}
-                    />
+                <div className="flex items-center justify-between mb-6">
+                    <div>
+                        <h2 className="mb-1 text-3xl font-bold tracking-tighter text-primary">
+                            Products ({filteredProducts.length})
+                        </h2>
+                        <p className="text-sm font-normal text-muted-foreground">
+                            Explore our top-selling products.
+                        </p>
+                    </div>
+                    <div className="flex flex-col gap-y-3">
+                        <FilterSheet
+                            categories={categories}
+                            categoryParams={categoryParams}
+                            handleCategoryClick={handleCategoryClick}
+                        />
+                        <Input
+                            type="text"
+                            placeholder="Search products..."
+                            value={searchTerm}
+                            onChange={handleSearch}
+                        />
+                    </div>
                 </div>
 
-                {products.length == 0 ? (
+                {filteredProducts.length == 0 ? (
                     <div>
                         <p className="text-base font-normal text-muted-foreground">
                             No products found
@@ -64,7 +83,7 @@ const ProductPage = ({ products, categories }: ProductProps) => {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 mb-[72px]">
-                        {products.map((product, index) => (
+                        {filteredProducts.map((product, index) => (
                             <ProductCard key={product.id} product={product} />
                         ))}
                     </div>
@@ -85,8 +104,14 @@ const FilterSheet = ({
 }) => {
     return (
         <Sheet>
-            <SheetTrigger className={cn(buttonVariants(), "mr-4 mt-4 gap-x-2")}>
-                Filters <Plus />
+            <SheetTrigger
+                className={cn(
+                    buttonVariants({ size: "sm" }),
+                    "flex items-center justify-center w-24 ml-auto"
+                )}
+            >
+                <span className="mr-2">Filters</span>{" "}
+                <Plus className="w-4 h-4" />
             </SheetTrigger>
             <SheetContent>
                 <SheetHeader>
@@ -97,6 +122,7 @@ const FilterSheet = ({
                         {categories?.map((category, i) => (
                             <Button
                                 key={i}
+                                className="rounded-full"
                                 variant={
                                     category.name.toLowerCase() ==
                                     categoryParams

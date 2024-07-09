@@ -1,35 +1,41 @@
 <?php
-use App\Http\Controllers\Admin\MajorCrudController;
-use App\Http\Controllers\Admin\ClassCrudController;
+
 use App\Http\Controllers\Admin\CategoryCrudController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\MediaCrudController;
+use App\Http\Controllers\Admin\OrderCrudController;
 use App\Http\Controllers\Admin\ProductCrudController;
 use App\Http\Controllers\Admin\UserCrudController;
 use App\Http\Controllers\Admin\RoleCrudController;
 use App\Http\Controllers\Admin\PermissionCrudController;
 use App\Http\Controllers\Admin\PermissionGroupCrudController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProfileController;
+use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
+// Route::get('/', function () {
+//     return Inertia::render('Welcome', [
+//         'canLogin' => Route::has('login'),
+//         'canRegister' => Route::has('register'),
+//         'laravelVersion' => Application::VERSION,
+//         'phpVersion' => PHP_VERSION,
+//     ]);
+// });
 
-    Route::delete('majors/bulk-destroy', [MajorCrudController::class, 'bulkDestroy'])->name('admin.majors.bulkDestroy');
-    Route::resource('majors', MajorCrudController::class)->names([
-        'index' => 'admin.majors.index',
-        'create' => 'admin.majors.create',
-        'store' => 'admin.majors.store',
-        'show' => 'admin.majors.show',
-        'edit' => 'admin.majors.edit',
-        'update' => 'admin.majors.update',
-        'destroy' => 'admin.majors.destroy',
-    ]);
+Route::prefix('admin')->middleware(['auth', 'verified', 'role:admin'])->group(function () {
+    Route::redirect('/', 'admin/dashboard');
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
 
-    Route::delete('class/bulk-destroy', [ClassCrudController::class, 'bulkDestroy'])->name('admin.classes.bulkDestroy');
-    Route::resource('classes', ClassCrudController::class)->names([
-        'index' => 'admin.classes.index',
-        'create' => 'admin.classes.create',
-        'store' => 'admin.classes.store',
-        'show' => 'admin.classes.show',
-        'edit' => 'admin.classes.edit',
-        'update' => 'admin.classes.update',
-        'destroy' => 'admin.classes.destroy',
-    ]);
+    Route::get('media', [MediaCrudController::class, 'index'])->name('admin.media.index');
+    Route::post('media', [MediaCrudController::class, 'store'])->name('admin.media.store');
+    Route::delete('media/bulk-destroy', [MediaCrudController::class, 'bulkDestroy'])->name('admin.media.bulkDestroy');
+    Route::delete('media/{id}', [MediaCrudController::class, 'destroy'])->middleware(['auth', 'verified'])->name('admin.media.destroy');
 
     Route::delete('categories/bulk-destroy', [CategoryCrudController::class, 'bulkDestroy'])->name('admin.categories.bulkDestroy');
     Route::resource('categories', CategoryCrudController::class)->names([
@@ -97,4 +103,43 @@ use App\Http\Controllers\Admin\PermissionGroupCrudController;
         'update' => 'admin.permission-groups.update',
         'destroy' => 'admin.permission-groups.destroy',
     ]);
+
+    Route::delete('orders/bulk-destroy', [OrderCrudController::class, 'bulkDestroy'])->name('admin.orders.bulkDestroy');
+    Route::put('orders/confirm/{id}', [OrderCrudController::class, 'confirm'])->name('admin.orders.confirm');
+    Route::resource('orders', OrderCrudController::class)->names([
+        'index' => 'admin.orders.index',
+        'create' => 'admin.orders.create',
+        'store' => 'admin.orders.store',
+        'show' => 'admin.orders.show',
+        'edit' => 'admin.orders.edit',
+        'update' => 'admin.orders.update',
+        'destroy' => 'admin.orders.destroy',
+    ]);
+
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+    Route::post('/cart', [CartController::class, 'store'])->middleware(['role:user'])->name('cart.store');
+    Route::post('/cart/add', [CartController::class, 'addToCart'])->name('cart.addToCart');
+    Route::delete('/cart/remove/{productId}', [CartController::class, 'removeFromCart'])->name('cart.removeFromCart');
+
+    Route::get('/orders', [OrderController::class, 'index'])->name('order.index');
+    Route::get('/orders/{id}', [OrderController::class, 'show'])->middleware(['role:user'])->name('order.show');
+    Route::get('/orders/{id}/checkout', [OrderController::class, 'create'])->middleware(['role:user'])->name('order.create');
+    Route::post('/orders/{id}', [OrderController::class, 'store'])->middleware(['role:user'])->name('order.store');
+    Route::delete('/orders/{id}', [OrderController::class, 'destroy'])->middleware(['role:user'])->name('order.destroy');
+
+    Route::get('/payment/{order_code}', [PaymentController::class, 'payment'])->middleware(['role:user'])->name('payment');
+    Route::put('/payment/{order_code}/success', [PaymentController::class, 'paymentSuccess'])->middleware(['role:user'])->name('payment.success');
+});
+
+Route::get('/', [HomeController::class, 'index'])->name('home.index');
+Route::get('/products', [ProductController::class, 'index'])->name('product.index');
+Route::get('/products/{slug}', [ProductController::class, 'show'])->name('product.show');
+
 require __DIR__ . '/auth.php';

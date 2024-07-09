@@ -83,7 +83,7 @@ export default function ManageProduct({
                     </p>
                 </div>
             </div>
-            <form onSubmit={handleSubmit} className="mt-4">
+            <form onSubmit={handleSubmit} className="mt-4 text-secondary">
                 <div className="flex mb-4 gap-x-2">
                     <div className="w-full">
                         <Label htmlFor="title">
@@ -202,7 +202,7 @@ export default function ManageProduct({
                     </Label>
                     <Button
                         variant="outline"
-                        className="mt-2 rounded-md gap-x-1"
+                        className="mt-2 gap-x-1"
                         onClick={(e) => {
                             e.preventDefault();
                             setMediaLibraryOpen(true);
@@ -230,7 +230,6 @@ export default function ManageProduct({
 
                 <Button
                     type="submit"
-                    className="rounded-md"
                     disabled={form.processing}
                 >
                     {product ? "Update Product" : "Add Product"}

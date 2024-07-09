@@ -210,7 +210,6 @@ export default function MediaLibrary({
                         {activeTab === "2" && (
                             <Button
                                 variant="default"
-                                className="rounded-lg"
                                 onClick={() => {
                                     onConfirm(
                                         selectMultiple

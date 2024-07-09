@@ -17,7 +17,6 @@ export default function ShowProduct({ product }: { product: Product }) {
                     </p>
                 </div>
                 <Button
-                    className="rounded-md"
                     size="sm"
                     onClick={() =>
                         router.get(route("admin.products.edit", product.id))
@@ -27,7 +26,7 @@ export default function ShowProduct({ product }: { product: Product }) {
                     Edit
                 </Button>
             </div>
-            <div className="mt-4">
+            <div className="mt-4 text-secondary">
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
                         <label className="block text-sm font-medium text-gray-700">

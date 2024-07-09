@@ -10,7 +10,7 @@ import {
 import { Link, router } from "@inertiajs/react";
 import { Button } from "@/Components/ui/button";
 import { Pencil, Plus } from "lucide-react";
-import { Category, Major, Product } from "@/types";
+import { Category } from "@/types";
 import { columns } from "./DataTable/Columns";
 import { DataTable } from "@/Components/DataTable/DataTable";
 import { formatPrice, getMediaUrl } from "@/lib/utils";
@@ -27,7 +27,6 @@ export default function ShowCategory({ category }: { category: Category }) {
                     </p>
                 </div>
                 <Button
-                    className="rounded-md"
                     size="sm"
                     onClick={() =>
                         router.get(route("admin.categories.edit", category.id))
@@ -37,7 +36,7 @@ export default function ShowCategory({ category }: { category: Category }) {
                     Edit
                 </Button>
             </div>
-            <div className="mt-4">
+            <div className="mt-4 text-secondary">
                 <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700">
                         Category Name

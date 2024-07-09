@@ -20,18 +20,8 @@ class CartController extends Controller
      */
     public function index()
     {
-        $cart = Cart::where("user_id", Auth::user()->id)->first();
-        $cartItems = CartItem::with('product.category')->where("cart_id", $cart->id)->get();
-
-        return Inertia::render('Cart/Index', compact('cartItems'));
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        $cart = Cart::with(['cartItems.product.category'])->where("user_id", Auth::user()->id)->first();
+        return Inertia::render('Cart/Index', compact('cart'));
     }
 
     /**
@@ -39,45 +29,33 @@ class CartController extends Controller
      */
     public function store(CartRequest $request)
     {
-        if (auth()->user()->isSuperAdmin()) {
-            return back()->with([
-                'error' => 'You are not authorized to perform this action'
-            ]);
-        }
-
-        $request->validated();
-
         DB::beginTransaction();
 
         try {
-            $cartItemsCollection = collect($request->cartItems); // Convert array to collection
+            $cart = Cart::with('cartItems.product')->findOrFail($request->cart_id);
+
+            $totalPrice = $cart->cartItems->sum(fn ($cartItem) => $cartItem->quantity * $cartItem->product->price);
 
             $order = Order::create([
                 'user_id' => Auth::user()->id,
-                'total_price' => $cartItemsCollection->sum(function($cartItem) {
-                    $product = Product::find($cartItem['product_id']);
-                    return $cartItem['quantity'] * $product->price;
-                }),
+                'total_price' => $totalPrice,
                 'status' => 'pending',
             ]);
 
-            foreach ($request->cartItems as $cartItem) {
-                $product = Product::find($cartItem['product_id']);
+            foreach ($cart->cartItems as $cartItem) {
                 OrderItem::create([
                     'order_id' => $order->id,
-                    'product_id' => $cartItem['product_id'],
-                    'quantity' => $cartItem['quantity'],
-                    'price' => $product->price,
+                    'product_id' => $cartItem->product_id,
+                    'quantity' => $cartItem->quantity,
+                    'price' => $cartItem->product->price,
                 ]);
             }
 
-            CartItem::where('cart_id', $request->user()->carts[0]->id)->delete();
+            $cart->cartItems()->delete();
 
             DB::commit();
 
-            return back()->with([
-                'success' => 'Order created successfully'
-            ]);
+            return redirect()->route('order.create', ['id' => $order->id]);
         } catch (\Exception $th) {
             DB::rollBack();
             return back()->with([
@@ -86,66 +64,35 @@ class CartController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
-    }
-
     public function addToCart(Request $request): \Illuminate\Http\RedirectResponse
     {
         $request->validate([
-            'productId' => 'required|exists:products,id',
+            'product_id' => 'required|exists:products,id',
         ]);
 
         DB::beginTransaction();
 
         try {
-            $user = Auth::user();
-            $carts = Cart::firstOrCreate([
-                'user_id' => $user->id
+            $cart = Cart::firstOrCreate([
+                'user_id' => auth()->user()->id
             ]);
 
-            $cartItem = CartItem::where('cart_id', $carts->id)->where('product_id', $request->productId)->first();
+            $cartItem = CartItem::where('cart_id', $cart->id)
+                ->where('product_id', $request->product_id)
+                ->first();
 
             if ($cartItem) {
                 DB::rollBack();
                 return back()->with([
                     'error' => 'Product already exists in cart'
                 ]);
-            } else {
-                $cartItem = CartItem::create([
-                    'cart_id' => $carts->id,
-                    'product_id' => $request->productId,
-                    'quantity' => 1
-                ]);
             }
+
+            CartItem::create([
+                'cart_id' => $cart->id,
+                'product_id' => $request->product_id,
+                'quantity' => 1
+            ]);
 
             DB::commit();
 
@@ -155,7 +102,7 @@ class CartController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with([
-                'error' => $e->getMessage()
+                'error' => 'An error occurred while adding the product to the cart'
             ]);
         }
     }
@@ -165,9 +112,8 @@ class CartController extends Controller
         DB::beginTransaction();
 
         try {
-            $cartItem = CartItem::where('cart_id', $request->user()->carts[0]->id)
-                ->where('product_id', $productId)
-                ->firstOrFail();
+            $cart = $request->user()->carts()->firstOrFail();
+            $cartItem = $cart->cartItems()->where('product_id', $productId)->firstOrFail();
             $cartItem->delete();
 
             DB::commit();

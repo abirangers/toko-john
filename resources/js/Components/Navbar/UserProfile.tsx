@@ -12,13 +12,14 @@ import {
 import { User } from "@/types";
 import { LogOut, ShoppingBag } from "lucide-react";
 import { Link, router } from "@inertiajs/react";
+import { cn } from "@/lib/utils";
 
 const UserProfile = ({ user }: { user: User }) => {
     return user ? (
         <DropdownMenu>
-            <DropdownMenuTrigger className="outline-none">
+            <DropdownMenuTrigger>
                 <Avatar className="w-8 h-8">
-                    <AvatarFallback>
+                    <AvatarFallback className="bg-primary">
                         {user.name.charAt(0).toUpperCase()}
                     </AvatarFallback>
                 </Avatar>
@@ -55,9 +56,12 @@ const UserProfile = ({ user }: { user: User }) => {
     ) : (
         <Link
             href={route("login")}
-            className={buttonVariants({
-                size: "sm",
-            })}
+            className={cn(
+                buttonVariants({
+                    size: "sm",
+                }),
+                "rounded-full"
+            )}
         >
             Sign In
         </Link>

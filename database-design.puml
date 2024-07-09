@@ -17,19 +17,6 @@ entity Category {
     * name : VARCHAR
 }
 
-entity Class {
-    * id : VARCHAR
-    --
-    * name : VARCHAR
-    * major_id: VARCHAR
-}
-
-entity Major {
-    * id : VARCHAR
-    --
-    * name : VARCHAR
-}
-
 entity User {
     * id : VARCHAR
     --

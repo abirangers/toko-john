@@ -45,12 +45,6 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    {data.author === "Henri Manampiring" && (
-                        <DropdownMenuItem>
-                            <Check className="w-4 h-4 mr-2" />
-                            Confirm
-                        </DropdownMenuItem>
-                    )}
                     <DropdownMenuItem
                         onClick={() =>
                             router.get(route("admin.users.show", data.id))

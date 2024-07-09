@@ -24,9 +24,9 @@ const OrderTabs = (): React.JSX.Element => {
             isActive: orderStatusParams == "pending",
         },
         {
-            title: "Completed",
-            href: "/orders?status=completed",
-            isActive: orderStatusParams == "completed",
+            title: "Paid",
+            href: "/orders?status=paid",
+            isActive: orderStatusParams == "paid",
         },
         {
             title: "Cancelled",

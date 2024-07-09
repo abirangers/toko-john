@@ -13,11 +13,11 @@
         --popover: 0 0% 100%;
         --popover-foreground: 0 0% 20%;
 
-        --primary: 0 0% 20%;
-        --primary-foreground: 210 40% 98%;
+        --primary: 217 75% 20%;
+        --primary-foreground: 0 0% 100%;
 
-        --secondary: 217 75% 20%;
-        --secondary-foreground: 0 0% 20%;
+        --secondary: 0 0% 20%;
+        --secondary-foreground: 210 40% 98%;
 
         --muted: 210 40% 96.1%;
         --muted-foreground: 0 0% 40%;
@@ -33,6 +33,12 @@
         --ring: 0 0% 20%;
 
         --radius: 0.5rem;
+
+        --chart-1: 12 76% 61%;
+        --chart-2: 173 58% 39%;
+        --chart-3: 197 37% 24%;
+        --chart-4: 43 74% 66%;
+        --chart-5: 27 87% 67%;
     }
 
     .dark {
@@ -63,6 +69,12 @@
         --border: 217.2 32.6% 17.5%;
         --input: 217.2 32.6% 17.5%;
         --ring: 212.7 26.8% 83.9%;
+        
+        --chart-1: 220 70% 50%;
+        --chart-2: 160 60% 45%;
+        --chart-3: 30 80% 55%;
+        --chart-4: 280 65% 60%;
+        --chart-5: 340 75% 55%;
     }
 }
 
@@ -71,6 +83,15 @@
         @apply border-border;
     }
     body {
-        @apply bg-background text-foreground;
+        margin-bottom: 0 !important;
+        @apply bg-background text-primary;
+    }
+
+    .chart-wrapper {
+        @apply bg-card text-card-foreground;
+    }
+
+    .chart-header {
+        @apply flex justify-between items-center mb-4;
     }
 }

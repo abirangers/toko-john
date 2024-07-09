@@ -22,7 +22,6 @@ const IndexUser = ({ users }: { users: User[] }) => {
                     </p>
                 </div>
                 <Button
-                    className="rounded-md"
                     size="sm"
                     onClick={() => router.get(route("admin.users.create"))}
                 >

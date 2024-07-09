@@ -69,7 +69,7 @@ export default function ManageUser({
                     </p>
                 </div>
             </div>
-            <form onSubmit={handleSubmit} className="mt-4">
+            <form onSubmit={handleSubmit} className="mt-4 text-secondary">
                 <div className="flex mb-4 gap-x-2">
                     <div className="w-full">
                         <Label htmlFor="name">
@@ -177,7 +177,7 @@ export default function ManageUser({
                 <div className="mb-4">
                     <Label htmlFor="role">Role</Label>
                     <Select
-                        value={form.data.role}
+                        value={`${form.data.role}`}
                         onValueChange={(value) => form.setData("role", value)}
                     >
                         <SelectTrigger className="mt-2 w-80">
@@ -195,7 +195,6 @@ export default function ManageUser({
 
                 <Button
                     type="submit"
-                    className="rounded-md"
                     disabled={form.processing}
                 >
                     {user ? "Update User" : "Add User"}

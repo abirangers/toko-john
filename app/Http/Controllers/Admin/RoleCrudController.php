@@ -2,15 +2,30 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
-use App\Models\PermissionGroup;
-use Illuminate\Http\Request;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
+use Illuminate\Routing\Controllers\HasMiddleware;
 use Inertia\Inertia;
+use Illuminate\Http\Request;
+use App\Models\PermissionGroup;
+use Spatie\Permission\Models\Role;
+use App\Http\Controllers\Controller;
+use Spatie\Permission\Models\Permission;
+use Illuminate\Routing\Controllers\Middleware;
+use App\Http\Requests\Admin\Common\BulkDestroyRequest;
+use Spatie\Permission\Middleware\PermissionMiddleware;
 
-class RoleCrudController extends Controller
+class RoleCrudController extends Controller implements HasMiddleware
 {
+    public static function middleware()
+    {
+        return [
+            new Middleware(PermissionMiddleware::using('find-all-roles'), only: ['index']),
+            new Middleware(PermissionMiddleware::using('create-role'), only: ['create', 'store']),
+            new Middleware(PermissionMiddleware::using('find-role'), only: ['show']),
+            new Middleware(PermissionMiddleware::using('update-role'), only: ['edit', 'update']),
+            new Middleware(PermissionMiddleware::using('delete-role'), only: ['destroy']),
+            new Middleware(PermissionMiddleware::using('bulk-delete-roles'), only: ['bulkDestroy']),
+        ];
+    }
     /**
      * Display a listing of the resource.
      */
@@ -49,13 +64,9 @@ class RoleCrudController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(int $id)
     {
-        $role = Role::find($id);
-        if (!$role) {
-            return redirect()->route("admin.roles.index")->with("error", "Role not found");
-        }
-
+        $role = Role::findOrFail($id);
         $rolePermissions = $role->permissions->pluck('name')->toArray();
         $permissionGroups = PermissionGroup::with('permissions')->get();
 
@@ -65,35 +76,37 @@ class RoleCrudController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(int $id)
     {
-        $role = Role::find($id);
-        if (!$role) {
-            return redirect()->route("admin.roles.index")->with("error", "Role not found");
-        }
-
+        $role = Role::findOrFail($id);
         return Inertia::render("Admin/Role/Manage", compact("role"));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, int $id)
     {
         $request->validate([
             "display_name" => "nullable|string|max:255",
             "name" => "nullable|string|max:255|unique:roles,name," . $id,
+            "permissions" => "nullable|array",
+            "permissions.*" => "exists:permissions,name",
         ]);
 
-        $role = Role::find($id);
-        if (!$role) {
-            return redirect()->route("admin.roles.index")->with("error", "Role not found");
+        $data = [];
+        if ($request->has('display_name')) {
+            $data['display_name'] = $request->display_name;
         }
-
-        $role->update($request->all());
+        if ($request->has('name')) {
+            $data['name'] = $request->name;
+        }
+        $role = Role::findOrFail($id);
+        $role->update($data);
 
         if ($request->has('permissions')) {
-            $role->syncPermissions($request->permissions);
+            $permissions = Permission::whereIn('name', $request->permissions)->get();
+            $role->syncPermissions($permissions);
         }
 
         if ($request->has('fromShowPage')) {
@@ -106,30 +119,17 @@ class RoleCrudController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(int $id)
     {
-        $role = Role::find($id);
-        if (!$role) {
-            return redirect()->route("admin.roles.index")->with("error", "Role not found");
-        }
-
-        $role->delete();
+        Role::findOrFail($id)->delete();
         return redirect()->route("admin.roles.index")->with("success", "Role deleted successfully");
     }
 
-    public function bulkDestroy(Request $request)
+    public function bulkDestroy(BulkDestroyRequest $request)
     {
-        $request->validate([
-            "ids" => "required|array",
-            "ids.*" => "required|exists:roles,id",
-        ]);
+        $ids = $request->validated('ids');
+        Role::whereIn('id', $ids)->delete();
 
-        $ids = $request->input('ids');
-        $roles = Role::whereIn('id', $ids)->get();
-        foreach ($roles as $role) {
-            $role->delete();
-        }
-
-        return redirect()->route("admin.roles.index")->with("success", "Roles deleted successfully");
+        return redirect()->route("admin.roles.index")->with("success", "Bulk roles deleted successfully.");
     }
 }

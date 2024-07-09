@@ -9,19 +9,19 @@ const PopularProductsSection = ({ products }: { products: Product[] }) => {
     return (
         <section id="popularProduct" className="px-8 pt-24">
             <div className="mb-8">
-                <h2 className="mb-3 text-3xl font-bold leading-tight tracking-normal sm:mb-4 sm:text-4xl md:text-5xl text-secondary">
+                <h2 className="mb-3 text-3xl font-bold leading-tight tracking-normal sm:mb-4 sm:text-4xl md:text-5xl">
                     Popular Products
                 </h2>
                 <div className="flex justify-between">
                     <p className="text-base font-normal sm:text-lg md:mb-4 text-muted-foreground">
-                        Jelajahi semua produk yang kami tawarkan dari SMK Plus Pelita Nusantara!
+                        Explore our top-selling products.
                     </p>
                     <Link
-                        className="hidden text-base transition-all md:flex text-secondary gap-x-1 hover:translate-x-1 hover:text-secondary/80"
+                        className="hidden text-base transition-all md:flex gap-x-1 hover:translate-x-1 hover:text-primary/80"
                         href={""}
                     >
-                        Shop the collection{" "}
-                        <ArrowRight className="w-6 h-6 text-secondary" />
+                        Explore the collection{" "}
+                        <ArrowRight className="w-6 h-6" />
                     </Link>
                 </div>
             </div>
@@ -36,7 +36,7 @@ const PopularProductsSection = ({ products }: { products: Product[] }) => {
                 href={"/products"}
                 className={cn(
                     buttonVariants(),
-                    "mx-auto text-center flex w-fit hover:before:-translate-x-48"
+                    "mx-auto text-center flex w-fit rounded-full gap-x-1"
                 )}
             >
                 View all products <ArrowRight />

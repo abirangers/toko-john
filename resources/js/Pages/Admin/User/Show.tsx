@@ -15,7 +15,6 @@ export default function ShowUser({ user }: { user: User }) {
                     </p>
                 </div>
                 <Button
-                    className="rounded-md"
                     size="sm"
                     onClick={() =>
                         router.get(route("admin.users.edit", user.id))
@@ -25,7 +24,7 @@ export default function ShowUser({ user }: { user: User }) {
                     Edit
                 </Button>
             </div>
-            <div className="mt-4">
+            <div className="mt-4 text-secondary">
                 <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700">
                         User Name

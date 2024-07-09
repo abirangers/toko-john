@@ -16,6 +16,14 @@ export function formatPrice(price: number) {
     });
 }
 
+export function formatDate(date: Date | string): string {
+    const parsedDate = new Date(date);
+    if (!isFinite(parsedDate.getTime())) {
+        throw new RangeError("date value is not finite");
+    }
+    return new Intl.DateTimeFormat("id-ID").format(parsedDate);
+}
+
 export const getMediaUrl = (filepath: string) => {
     return `${window.location.origin}/storage/${filepath}`;
 };

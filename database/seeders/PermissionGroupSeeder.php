@@ -15,11 +15,13 @@ class PermissionGroupSeeder extends Seeder
     {
         $groups = [
             'media' => 'Media',
-            'major' => 'Major',
-            'class' => 'Class',
-            'category' => 'Category',
-            'product' => 'Product',
-            'user' => 'User',
+            'categories' => 'Categories',
+            'products' => 'Products',
+            'users' => 'Users',
+            'orders' => 'Orders',
+            'permissions' => 'Permissions',
+            'roles' => 'Roles',
+            'permission_groups' => 'Permission Groups',
         ];
 
         foreach ($groups as $group) {

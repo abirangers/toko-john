@@ -67,6 +67,13 @@ export const columns: ColumnDef<Product>[] = [
         enableColumnFilter: true,
     },
     {
+        accessorKey: "stock",
+        header: "Stock",
+        cell: ({ row }) => row.original.stock,
+        enableSorting: true,
+        enableColumnFilter: true,
+    },
+    {
         accessorKey: "image",
         header: "Image",
         cell: ({ row }) =>

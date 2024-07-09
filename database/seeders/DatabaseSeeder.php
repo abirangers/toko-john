@@ -17,8 +17,7 @@ class DatabaseSeeder extends Seeder
             PermissionSeeder::class,
             PermissionGroupSeeder::class,
             UserSeeder::class,
-            MajorSeeder::class,
-            ClassSeeder::class,
+            OrderSeeder::class,
             CategorySeeder::class,
             ProductSeeder::class,
         ]);

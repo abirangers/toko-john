@@ -7,6 +7,7 @@ export default function MainLayout({
     user,
     children,
 }: PropsWithChildren<{ user: User }>) {
+    
     return (
         <div className="min-h-screen">
             <Navbar user={user} />

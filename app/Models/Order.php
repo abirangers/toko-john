@@ -6,14 +6,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\DB;
 
 class Order extends Model
 {
   use HasFactory;
-  use SoftDeletes;
-
   protected $fillable = [
     'user_id',
     'total_price',
@@ -36,12 +32,27 @@ class Order extends Model
 
   private static function generateOrderCode()
   {
-    $date = now()->format('Ymd');
+    $type = 'R';
+    $systemId = 'X5';
+    $sequenceNumber = str_pad(self::getNextSequenceNumber(), 6, '0', STR_PAD_LEFT);
+    $randomNumber = mt_rand(10000, 99999);
+    $checksum = self::calculateCheckSum($type . $systemId . $sequenceNumber . $randomNumber);
+    return $type . $systemId . "-" . $sequenceNumber . "-" . $randomNumber . "-" . $checksum;
+  }
 
-    $latestOrder = self::whereDate('created_at', now()->toDateString())->latest('id')->first();
-    $orderNumber = $latestOrder ? $latestOrder->id + 1 : 1;
+  private static function getNextSequenceNumber()
+  {
+    $lastOrder = self::orderBy('id', 'desc')->first();
+    return $lastOrder ? intval(substr($lastOrder->order_code, 4, 6)) + 1 : 1;
+  }
 
-    return 'ORD-' . $date . '-' . str_pad($orderNumber, 4, '0', STR_PAD_LEFT);
+  private static function calculateCheckSum($data)
+  {
+    $checksum = 0;
+    for ($i = 0; $i < strlen($data); $i++) {
+      $checksum += ord($data[$i]);
+    }
+    return $checksum % 100;
   }
 
   public function user(): BelongsTo

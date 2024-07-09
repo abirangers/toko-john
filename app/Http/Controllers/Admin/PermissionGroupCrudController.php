@@ -3,12 +3,27 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\Common\BulkDestroyRequest;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use Inertia\Inertia;
 use App\Models\PermissionGroup;
+use Spatie\Permission\Middleware\PermissionMiddleware;
 
-class PermissionGroupCrudController extends Controller
+class PermissionGroupCrudController extends Controller implements HasMiddleware
 {
+    public static function middleware()
+    {
+        return [
+            new Middleware(PermissionMiddleware::using('find-all-permission-groups'), only: ['index']),
+            new Middleware(PermissionMiddleware::using('create-permission-group'), only: ['create', 'store']),
+            new Middleware(PermissionMiddleware::using('find-permission-group'), only: ['show']),
+            new Middleware(PermissionMiddleware::using('update-permission-group'), only: ['edit', 'update']),
+            new Middleware(PermissionMiddleware::using('delete-permission-group'), only: ['destroy']),
+            new Middleware(PermissionMiddleware::using('bulk-delete-permission-groups'), only: ['bulkDestroy']),
+        ];
+    }
     /**
      * Display a listing of the resource.
      */
@@ -45,75 +60,51 @@ class PermissionGroupCrudController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(int $id)
     {
-        $permissionGroup = PermissionGroup::find($id);
-        if (!$permissionGroup) {
-            return redirect()->route('admin.permission-groups.index')->with('error', 'Permission group not found');
-        }
-        return Inertia::render('Admin/PermissionGroup/Show', [
-            'permissionGroup' => $permissionGroup
-        ]);
+        $permissionGroup = PermissionGroup::findOrFail($id);
+        return Inertia::render('Admin/PermissionGroup/Show', compact('permissionGroup'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(int $id)
     {
-        $permissionGroup = PermissionGroup::find($id);
-        if (!$permissionGroup) {
-            return redirect()->route('admin.permission-groups.index')->with('error', 'Permission group not found');
-        }
-        return Inertia::render('Admin/PermissionGroup/Manage', [
-            'permissionGroup' => $permissionGroup
-        ]);
+        $permissionGroup = PermissionGroup::findOrFail($id);
+        return Inertia::render('Admin/PermissionGroup/Manage', compact('permissionGroup'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, int $id)
     {
         $request->validate([
             'name' => 'required|string|max:255',
         ]);
-        $permissionGroup = PermissionGroup::find($id);
-        if (!$permissionGroup) {
-            return redirect()->route('admin.permission-groups.index')->with('error', 'Permission group not found');
-        }
+        
+        $permissionGroup = PermissionGroup::findOrFail($id);
         $permissionGroup->update([
             'name' => $request->name,
         ]);
+        
         return redirect()->route('admin.permission-groups.index')->with('success', 'Permission group updated successfully');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(int $id)
     {
-        $permissionGroup = PermissionGroup::find($id);
-        if (!$permissionGroup) {
-            return redirect()->route('admin.permission-groups.index')->with('error', 'Permission group not found');
-        }
-        $permissionGroup->delete();
+        PermissionGroup::findOrFail($id)->delete();
         return redirect()->route('admin.permission-groups.index')->with('success', 'Permission group deleted successfully');
     }
 
-    public function bulkDestroy(Request $request)
+    public function bulkDestroy(BulkDestroyRequest $request)
     {
-        $request->validate([
-            'ids' => 'required|array',
-            'ids.*' => 'required|exists:permission_groups,id',
-        ]);
-
-        $ids = $request->input('ids');
-
-        $permissionGroups = PermissionGroup::whereIn('id', $ids)->get();
-        foreach ($permissionGroups as $permissionGroup) {
-            $permissionGroup->delete();
-        }
+        $ids = $request->validated('ids');
+        PermissionGroup::whereIn('id', $ids)->delete();
 
         return redirect()->route('admin.permission-groups.index')->with('success', 'Bulk delete permission groups successfully');
     }

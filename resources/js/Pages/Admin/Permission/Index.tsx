@@ -1,7 +1,7 @@
 import { DataTable } from "@/Components/DataTable/DataTable";
 import { Button } from "@/Components/ui/button";
 import DashboardLayout from "@/Layouts/DashboardLayout";
-import { Category, Major, Permission } from "@/types";
+import { Permission } from "@/types";
 import { router } from "@inertiajs/react";
 import { Plus } from "lucide-react";
 import React, { useMemo } from "react";
@@ -22,7 +22,6 @@ const IndexPermission = ({ permissions }: { permissions: Permission[] }) => {
                     </p>
                 </div>
                 <Button
-                    className="rounded-md"
                     size="sm"
                     onClick={() => router.get(route("admin.permissions.create"))}
                 >

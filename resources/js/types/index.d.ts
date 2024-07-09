@@ -1,4 +1,4 @@
-type OrderStatus = "pending" | "completed" | "canceled";
+type OrderStatus = "pending" | "paid" | "cancelled";
 
 export interface User {
     id: number;
@@ -33,20 +33,6 @@ export interface Permission {
     guard_name: string;
 }
 
-export interface Major {
-    id: number;
-    name: string;
-    short_name: string;
-    slug: string;
-}
-
-export interface Class {
-    id: number;
-    name: string;
-    slug: string;
-    major: Major;
-}
-
 export interface Category {
     id: number;
     name: string;
@@ -76,9 +62,12 @@ export interface Product {
 
 export interface Order {
     id: number;
+    order_code: string;
     order_items: OrderItem[];
     status: OrderStatus;
     total_price: number;
+    user: User;
+    created_at: string;
 }
 
 export interface OrderItem {
@@ -86,6 +75,7 @@ export interface OrderItem {
     order_id: number;
     product: Product;
     price: number;
+    quantity: number;
 }
 
 export interface CartItem {
@@ -97,6 +87,7 @@ export interface CartItem {
 }
 
 export interface Cart {
+    id: number;
     user_id: number;
     cart_items: CartItem[];
 }

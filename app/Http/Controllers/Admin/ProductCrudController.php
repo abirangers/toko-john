@@ -3,16 +3,31 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Product\CreateProductRequest;
-use App\Http\Requests\Product\UpdateProductRequest;
+use App\Http\Requests\Admin\Common\BulkDestroyRequest;
+use App\Http\Requests\Admin\Product\CreateProductRequest;
+use App\Http\Requests\Admin\Product\UpdateProductRequest;
 use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use Spatie\Permission\Middleware\PermissionMiddleware;
 
-class ProductCrudController extends Controller
+class ProductCrudController extends Controller implements HasMiddleware
 {
+    public static function middleware()
+    {
+        return [
+            new Middleware(PermissionMiddleware::using('find-all-products'), only: ['index']),
+            new Middleware(PermissionMiddleware::using('create-product'), only: ['create', 'store']),
+            new Middleware(PermissionMiddleware::using('find-product'), only: ['show']),
+            new Middleware(PermissionMiddleware::using('update-product'), only: ['edit', 'update']),
+            new Middleware(PermissionMiddleware::using('delete-product'), only: ['destroy']),
+            new Middleware(PermissionMiddleware::using('bulk-delete-products'), only: ['bulkDestroy']),
+        ];
+    }
     /**
      * Display a listing of the resource.
      */
@@ -49,16 +64,7 @@ class ProductCrudController extends Controller
      */
     public function store(CreateProductRequest $request)
     {
-
         $product = Product::create($request->validated());
-
-        if ($request->hasFile('image')) {
-            $image = $request->file('image');
-            $imageName = time() . '.' . $image->getClientOriginalExtension();
-            $image->move(public_path('images/products'), $imageName);
-            $product->image = $imageName;
-        }
-
         $product->save();
 
         return redirect()->route('admin.products.index')->with('success', 'Product created successfully');
@@ -67,74 +73,49 @@ class ProductCrudController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(int $id)
     {
         $product = Product::with('category')->findOrFail($id);
-        return Inertia::render("Admin/Product/Show", [
-            "product" => $product
-        ]);
+        return Inertia::render("Admin/Product/Show", compact('product'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(int $id)
     {
         $product = Product::with('category')->findOrFail($id);
         $categories = Category::all();
-        return Inertia::render("Admin/Product/Manage", [
-            "product" => $product,
-            "categories" => $categories
-        ]);
+        return Inertia::render("Admin/Product/Manage", compact('product', 'categories'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateProductRequest $request, string $id)
+    public function update(UpdateProductRequest $request, int $id)
     {
-
-        $product = Product::find($id);
-        if (!$product) {
-            return redirect()->route('admin.products.index')->with('error', 'Product not found');
-        }
+        $product = Product::findOrFail($id);
         $product->update($request->validated());
+        
         return redirect()->route('admin.products.index')->with('success', 'Product updated successfully');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(int $id)
     {
-        $product = Product::find($id);
-        if (!$product) {
-            return redirect()->route('admin.products.index')->with('error', 'Product not found');
-        }
-        if ($product->image) {
-            Storage::delete('public/images/products/' . $product->image);
-        }
-        $product->delete();
+        Product::findOrFail($id)->delete();
         return redirect()->route('admin.products.index')->with('success', 'Product deleted successfully');
     }
 
     /**
      * Remove multiple resources from storage.
      */
-    public function bulkDestroy(Request $request)
+    public function bulkDestroy(BulkDestroyRequest $request)
     {
-        $ids = $request->input('ids', []);
-        if (empty($ids)) {
-            return redirect()->route('admin.products.index')->with('error', 'No products selected for deletion');
-        }
-
-        $products = Product::whereIn('id', $ids)->get();
-        foreach ($products as $product) {
-            if ($product->image) {
-                Storage::delete('public/images/products/' . $product->image);
-            }
-            $product->delete();
-        }
+        $ids = $request->validated('ids');
+        Product::whereIn('id', $ids)->delete();
 
         return redirect()->route('admin.products.index')->with('success', 'Bulk delete products successfully');
     }

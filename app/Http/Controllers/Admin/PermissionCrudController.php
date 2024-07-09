@@ -2,15 +2,30 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
-use App\Models\PermissionGroup;
-use Illuminate\Http\Request;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
+use Illuminate\Routing\Controllers\HasMiddleware;
 use Inertia\Inertia;
+use Illuminate\Http\Request;
+use App\Models\PermissionGroup;
+use Spatie\Permission\Models\Role;
+use App\Http\Controllers\Controller;
+use Spatie\Permission\Models\Permission;
+use Illuminate\Routing\Controllers\Middleware;
+use App\Http\Requests\Admin\Common\BulkDestroyRequest;
+use Spatie\Permission\Middleware\PermissionMiddleware;
 
-class PermissionCrudController extends Controller
+class PermissionCrudController extends Controller implements HasMiddleware
 {
+    public static function middleware()
+    {
+        return [
+            new Middleware(PermissionMiddleware::using('find-all-permissions'), only: ['index']),
+            new Middleware(PermissionMiddleware::using('create-permission'), only: ['create', 'store']),
+            new Middleware(PermissionMiddleware::using('find-permission'), only: ['show']),
+            new Middleware(PermissionMiddleware::using('update-permission'), only: ['edit', 'update']),
+            new Middleware(PermissionMiddleware::using('delete-permission'), only: ['destroy']),
+            new Middleware(PermissionMiddleware::using('bulk-delete-permissions'), only: ['bulkDestroy']),
+        ];
+    }
     /**
      * Display a listing of the resource.
      */
@@ -43,50 +58,40 @@ class PermissionCrudController extends Controller
             'display_name' => 'required|string|max:255',
             'group_name' => 'required|string|max:255',
         ]);
-        $permission = Permission::create([
+        
+        Permission::create([
             'name' => $request->name,
             'display_name' => $request->display_name,
             'group_name' => $request->group_name,
         ]);
+        
         return redirect()->route('admin.permissions.index')->with('success', 'Permission created successfully');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(int $id)
     {
-        $permission = Permission::find($id);
-        if(!$permission) {
-            return redirect()->route('admin.permissions.index')->with('error', 'Permission not found');
-        }
-        return Inertia::render('Admin/Permission/Show', [
-            'permission' => $permission
-        ]);
+        $permission = Permission::findOrFail($id);
+        return Inertia::render('Admin/Permission/Show', compact('permission'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(int $id)
     {
-        $permission = Permission::find($id);
-        if(!$permission) {
-            return redirect()->route('admin.permissions.index')->with('error', 'Permission not found');
-        }
-        
+        $permission = Permission::findOrFail($id);
         $permissionGroups = PermissionGroup::all();
         
-        return Inertia::render('Admin/Permission/Manage', [
-            'permission' => $permission,
-            'permissionGroups' => $permissionGroups
-        ]);
+        return Inertia::render('Admin/Permission/Manage', compact('permission', 'permissionGroups'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, int $id)
     {
         $request->validate([
             'name' => 'required|string|max:255',
@@ -94,11 +99,7 @@ class PermissionCrudController extends Controller
             'group_name' => 'required|string|max:255',
         ]);
         
-        $permission = Permission::find($id);
-        if(!$permission) {
-            return redirect()->route('admin.permissions.index')->with('error', 'Permission not found');
-        }
-        
+        $permission = Permission::findOrFail($id);
         $permission->update([
             'name' => $request->name,
             'display_name' => $request->display_name,
@@ -111,28 +112,16 @@ class PermissionCrudController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(int $id)
     {
-        $permission = Permission::find($id);
-        if(!$permission) {
-            return redirect()->route('admin.permissions.index')->with('error', 'Permission not found');
-        }
-        $permission->delete();
+        Permission::findOrFail($id)->delete();
         return redirect()->route('admin.permissions.index')->with('success', 'Permission deleted successfully');
     }
 
-    public function bulkDestroy(Request $request)
+    public function bulkDestroy(BulkDestroyRequest $request)
     {
-        $request->validate([
-            'ids' => 'required|array',
-            'ids.*' => 'required|exists:permissions,id',
-        ]);
-
-        $ids = $request->input('ids');
-        $permissions = Permission::whereIn('id', $ids)->get();
-        foreach ($permissions as $permission) {
-            $permission->delete();
-        }
+        $ids = $request->validated('ids');
+        Permission::whereIn('id', $ids)->delete();
 
         return redirect()->route('admin.permissions.index')->with('success', 'Permissions deleted successfully.');
     }

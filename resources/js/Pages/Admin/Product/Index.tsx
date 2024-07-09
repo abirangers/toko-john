@@ -23,7 +23,6 @@ const IndexProduct = ({ products }: { products: Product[] }) => {
                     </p>
                 </div>
                 <Button
-                    className="rounded-md"
                     size="sm"
                     onClick={() => router.get(route("admin.products.create"))}
                 >

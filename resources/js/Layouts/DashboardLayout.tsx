@@ -1,4 +1,4 @@
-import { PropsWithChildren, useEffect } from "react";
+    import { PropsWithChildren, useEffect } from "react";
 import { User } from "@/types";
 import { Link, router, usePage } from "@inertiajs/react";
 import {
@@ -23,6 +23,7 @@ import {
     UserCheck,
     Shield,
     Lock,
+    ClipboardList,
 } from "lucide-react";
 import {
     Accordion,
@@ -63,6 +64,7 @@ export default function DashboardLayout({ children }: PropsWithChildren) {
         auth: { user: User };
         flash: { success: string; error: string };
     };
+
     const user = auth?.user;
 
     useEffect(() => {
@@ -79,21 +81,21 @@ export default function DashboardLayout({ children }: PropsWithChildren) {
             <header className="px-4 py-4 bg-white border-b">
                 <nav className="flex items-center justify-between">
                     <div>
-                        <a className="" href="/">
+                        <Link href={route('home.index')}>
                             <img
-                                src="/images/logo.png"
+                                src="/images/logo.jpeg"
                                 alt="logo penus"
                                 loading="lazy"
                                 width={32}
                                 height={32}
                             />
-                        </a>
+                        </Link>
                     </div>
                     <div>
                         <DropdownMenu>
                             <DropdownMenuTrigger className="outline-none">
                                 <Avatar className="w-8 h-8">
-                                    <AvatarFallback>
+                                    <AvatarFallback className="bg-primary">
                                         {user?.name.charAt(0).toUpperCase()}
                                     </AvatarFallback>
                                 </Avatar>
@@ -145,18 +147,6 @@ export default function DashboardLayout({ children }: PropsWithChildren) {
                                     icon={<Image className="w-5 h-5 mr-2" />}
                                 />
                                 <DashboardLink
-                                    href="admin.majors.index"
-                                    name="Major"
-                                    icon={
-                                        <GraduationCap className="w-5 h-5 mr-2" />
-                                    }
-                                />
-                                <DashboardLink
-                                    href="admin.classes.index"
-                                    name="Class"
-                                    icon={<School className="w-5 h-5 mr-2" />}
-                                />
-                                <DashboardLink
                                     href="admin.categories.index"
                                     name="Category"
                                     icon={<List className="w-5 h-5 mr-2" />}
@@ -165,6 +155,11 @@ export default function DashboardLayout({ children }: PropsWithChildren) {
                                     href="admin.products.index"
                                     name="Products"
                                     icon={<Package className="w-5 h-5 mr-2" />}
+                                />
+                                <DashboardLink
+                                    href="admin.orders.index"
+                                    name="Order"
+                                    icon={<ClipboardList className="w-5 h-5 mr-2" />}
                                 />
                                 <Accordion
                                     type="multiple"

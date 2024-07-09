@@ -11,7 +11,7 @@ class CartRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return !auth()->user()->isSuperAdmin();
+        return !auth()->user()->isAdmin();
     }
 
     /**
@@ -22,9 +22,7 @@ class CartRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'cartItems' => 'required|array',
-            'cartItems.*.product_id' => 'required|exists:products,id',
-            'cartItems.*.quantity' => 'required|integer|min:1',
+            'cart_id' => 'required|exists:carts,id',
         ];
     }
 }

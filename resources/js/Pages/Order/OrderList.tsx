@@ -1,9 +1,28 @@
 import { Badge } from "@/Components/ui/badge";
 import { Separator } from "@/Components/ui/separator";
 import { Order } from "@/types";
-import { ShoppingBag } from "lucide-react";
+import {
+    CreditCard,
+    Eye,
+    MoreVertical,
+    ShoppingBag,
+    XCircleIcon,
+} from "lucide-react";
 import OrderCard from "./OrderCard";
+import { useState } from "react";
+
 import { formatPrice } from "@/lib/utils";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/Components/ui/dropdown-menu";
+import { router } from "@inertiajs/react";
+import { Button } from "@/Components/ui/button";
+import { ConfirmDialog } from "@/Components/ConfirmDialog";
 
 type BadgeVariant =
     | "default"
@@ -14,41 +33,104 @@ type BadgeVariant =
 
 const statusOrderVariantBadge: Record<Order["status"], BadgeVariant> = {
     pending: "secondary",
-    canceled: "destructive",
-    completed: "highlighted",
+    cancelled: "destructive",
+    paid: "highlighted",
 };
 
-/**
- * Renders the OrderList component with the provided order details.
- *
- * @param {Order} order - The order object containing order details.
- * @return {React.JSX.Element} The rendered OrderList component.
- */
 const OrderList = ({ order }: { order: Order }): React.JSX.Element => {
-    /**
-     * Returns the variant of the badge based on the given order status.
-     *
-     * @param {Order["status"]} status - The status of the order.
-     * @return {BadgeVariant} The variant of the badge.
-     */
+    const [open, setOpen] = useState(false);
+    const [deleting, setDeleting] = useState(false);
+
     const getBadgeVariant = (status: Order["status"]): BadgeVariant =>
         statusOrderVariantBadge[status] || "default";
+
+    const handleDelete = () => {
+        setDeleting(true);
+        router.delete(route("order.destroy", order.id), {
+            onSuccess: () => {
+                setOpen(false);
+                setDeleting(false);
+            },
+            onError: () => {
+                setDeleting(false);
+            },
+        });
+    };
 
     return (
         <div className="p-3 space-y-4 transition-all duration-300 border shadow-md sm:py-4 sm:px-6 hover:shadow-lg rounded-xl">
             <div className="flex justify-between">
-                <div className="flex items-center">
+                <div className="flex items-center font-semibold">
                     <ShoppingBag className="w-4 h-4 mr-2" />
                     Shopping
                 </div>
 
-                <div>
+                <div className="flex items-center gap-x-2">
                     <Badge
                         variant={getBadgeVariant(order.status)}
                         className="capitalize"
                     >
                         {order.status}
                     </Badge>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="w-8 h-8 p-0">
+                                <span className="sr-only">Open menu</span>
+                                <MoreVertical className="w-4 h-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            {order.status === "pending" && (
+                                <DropdownMenuItem
+                                    onClick={() =>
+                                        router.get(
+                                            route("order.create", order.id)
+                                        )
+                                    }
+                                    className="cursor-pointer"
+                                >
+                                    <CreditCard className="w-4 h-4 mr-2" />
+                                    Complete
+                                </DropdownMenuItem>
+                            )}
+                            {order.status === "paid" && (
+                                <DropdownMenuItem
+                                    onClick={() =>
+                                        router.get(
+                                            route("order.show", order.id)
+                                        )
+                                    }
+                                    className="cursor-pointer"
+                                >
+                                    <Eye className="w-4 h-4 mr-2" />
+                                    View Details
+                                </DropdownMenuItem>
+                            )}
+
+                            {order.status === "pending" && (
+                                <DropdownMenuItem
+                                    onClick={() => setOpen(true)}
+                                    className="cursor-pointer"
+                                >
+                                    <XCircleIcon className="w-4 h-4 mr-2" />
+                                    Cancel
+                                </DropdownMenuItem>
+                            )}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    <ConfirmDialog
+                        open={open}
+                        onOpenChange={setOpen}
+                        title="Are you sure?"
+                        description="This action cannot be undone."
+                        onConfirm={handleDelete}
+                        confirmText="Continue"
+                        confirmVariant="destructive"
+                        confirmDisabled={deleting}
+                        cancelText="Cancel"
+                    />
                 </div>
             </div>
             <Separator />

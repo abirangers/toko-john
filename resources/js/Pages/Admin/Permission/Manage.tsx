@@ -75,7 +75,7 @@ export default function ManagePermission({
                     </p>
                 </div>
             </div>
-            <form onSubmit={handleSubmit} className="mt-4">
+            <form onSubmit={handleSubmit} className="mt-4 text-secondary">
                 <div className="mb-4">
                     <Label htmlFor="display_name">
                         Name<span className="text-red-600">*</span>
@@ -136,7 +136,6 @@ export default function ManagePermission({
                 </div>
                 <Button
                     type="submit"
-                    className="rounded-md"
                     disabled={form.processing}
                 >
                     {permission ? "Update Permission" : "Add Permission"}

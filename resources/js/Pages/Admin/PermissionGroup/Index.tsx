@@ -22,7 +22,6 @@ const IndexPermissionGroup = ({ permissionGroups }: { permissionGroups: Permissi
                     </p>
                 </div>
                 <Button
-                    className="rounded-md"
                     size="sm"
                     onClick={() => router.get(route("admin.permission-groups.create"))}
                 >

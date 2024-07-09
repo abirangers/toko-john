@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\SendOrderInvoiceMail;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Mail\OrderInvoiceMail;
+use Illuminate\Support\Facades\Mail;
 
 class OrderController extends Controller
 {
@@ -20,9 +23,9 @@ class OrderController extends Controller
             $query->where('status', $orderStatusParams);
         }
 
-        $orders = $query->orderByRaw("FIELD(status, 'completed', 'pending', 'canceled') ASC, created_at DESC")->get();
-        
-        $totalOrder = $orders->where('status', 'completed')->sum(function ($order) {
+        $orders = $query->orderByRaw("FIELD(status, 'paid', 'pending', 'cancelled') DESC, created_at DESC")->get();
+
+        $totalOrder = $orders->where('status', 'paid')->sum(function ($order) {
             return $order->orderItems->sum('product.price');
         });
 
@@ -30,50 +33,56 @@ class OrderController extends Controller
     }
 
     /**
+     * Display the specified resource.
+     */
+    public function show(int $id)
+    {
+        $order = Order::with(['orderItems.product', 'user'])->findOrFail($id);
+        return Inertia::render('Order/OrderInvoice', compact('order'));
+    }
+
+    /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(int $id)
     {
-        //
+        $order = Order::with(['orderItems.product', 'user'])->find($id);
+        return Inertia::render('Order/OrderCheckout', compact('order'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, int $id)
     {
-        
-    }
+        $request->validate([
+            'name' => 'required|string|max:255|exists:users,name',
+            'email' => 'required|email|max:255|exists:users,email',
+        ]);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Order $order)
-    {
-        //
-    }
+        $order = Order::with(['orderItems.product'])->findOrFail($id);
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Order $order)
-    {
-        //
-    }
+        $orderDetails = [
+            'name' => $order->user->name,
+            'order_id' => $order->order_code,
+            'product' => $order->orderItems->first()->product->title,
+            'date' => now()->format('d F Y H:i:s'),
+            'due_date' => now()->addHours(1)->format('d F Y H:i:s'),
+            'total' => $order->orderItems->sum('product.price'),
+        ];
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Order $order)
-    {
-        //
+        SendOrderInvoiceMail::dispatch($request->email, $orderDetails);
+
+        return back();
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Order $order)
+    public function destroy(int $id)
     {
-        //
+        $order = Order::findOrFail($id);
+        $order->delete();
+        return back()->with('success', 'Order deleted successfully');
     }
 }
