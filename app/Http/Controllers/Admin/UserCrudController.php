@@ -28,7 +28,7 @@ class UserCrudController extends Controller implements HasMiddleware
             new Middleware(PermissionMiddleware::using('bulk-delete-users'), only: ['bulkDestroy']),
         ];
     }
-    
+
     /**
      * Display a listing of the resource.
      */
@@ -64,7 +64,7 @@ class UserCrudController extends Controller implements HasMiddleware
 
         return redirect()
             ->route('admin.users.index')
-            ->with('success', 'User created successfully.');
+            ->with('success', 'User created successfully');
     }
 
     /**
@@ -83,7 +83,7 @@ class UserCrudController extends Controller implements HasMiddleware
     {
         $user = User::with('roles')->findOrFail($id);
         $roles = Role::all();
-        
+
         return Inertia::render('Admin/User/Manage', compact('user', 'roles'));
     }
 
@@ -91,7 +91,7 @@ class UserCrudController extends Controller implements HasMiddleware
      * Update the specified resource in storage.
      */
     public function update(UpdateUserRequest $request, int $id)
-    {   
+    {
         $validatedData = $request->validated();
 
         $user = User::with('roles')->findOrFail($id);
@@ -102,7 +102,7 @@ class UserCrudController extends Controller implements HasMiddleware
         ]);
         $user->syncRoles($validatedData['role']);
 
-        return redirect()->route('admin.users.index')->with('success', 'User updated successfully.');
+        return redirect()->route('admin.users.index')->with('success', 'User updated successfully');
     }
 
     /**
@@ -113,11 +113,11 @@ class UserCrudController extends Controller implements HasMiddleware
         $user = User::findOrFail($id);
 
         if ($user->hasRole('admin')) {
-            return redirect()->route('admin.users.index')->with('error', 'Cannot delete admin user.');
+            return redirect()->route('admin.users.index')->with('error', 'You cannot delete yourself');
         }
-        
+
         $user->delete();
-        return redirect()->route('admin.users.index')->with('success', 'User deleted successfully.');
+        return redirect()->route('admin.users.index')->with('success', 'User deleted successfully');
     }
 
     public function bulkDestroy(BulkDestroyRequest $request)
@@ -126,12 +126,12 @@ class UserCrudController extends Controller implements HasMiddleware
         $users = User::whereIn('id', $ids)->get();
         foreach ($users as $user) {
             if ($user->hasRole('admin')) {
-                return redirect()->route('admin.users.index')->with('error', 'Cannot delete admin user.');
+                return redirect()->route('admin.users.index')->with('error', 'You cannot delete yourself');
             }
 
             $user->delete();
         }
-        
-        return redirect()->route('admin.users.index')->with('success', 'Bulk users deleted successfully.');
+
+        return redirect()->route('admin.users.index')->with('success', 'Bulk users deleted successfully');
     }
 }

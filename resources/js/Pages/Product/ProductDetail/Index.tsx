@@ -22,8 +22,8 @@ const ProductDetail = ({ auth, product }: ProductDetailProps) => {
         e.preventDefault();
 
         router.post(
-            route("cart.addToCart", { product_id: product.id }),
-            undefined,
+            route("cart.store"),
+            { product_id: product.id },
             {
                 onSuccess: (params) => {
                     const flash = params.props.flash as unknown as {

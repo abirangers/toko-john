@@ -13,7 +13,7 @@ const ProductCard = ({ product }: { product: Product }) => {
         e.preventDefault();
 
         router.post(
-            route("cart.addToCart"),
+            route("cart.store"),
             { product_id: product.id },
             {
                 preserveScroll: true,
@@ -30,7 +30,7 @@ const ProductCard = ({ product }: { product: Product }) => {
                     }
                 },
                 onError: (params) => {
-                    console.log(params);
+                    console.log(params); // error: the cart_id field is required
                 },
             }
         );
@@ -45,6 +45,7 @@ const ProductCard = ({ product }: { product: Product }) => {
                 src={product.image}
                 alt={product.title}
                 className="object-cover w-full mb-4 rounded-xl h-60"
+                loading="lazy"
             />
             <p className="mb-1 text-sm font-medium text-muted-foreground">
                 {product.category.name}

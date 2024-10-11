@@ -25,7 +25,7 @@ class OrderFactory extends Factory
             'user_id' => $user ? $user->id : User::factory(),
             'total_price' => fake()->randomFloat(2, 1, 100),
             'status' => fake()->randomElement(['pending', 'paid', 'cancelled']),
-            'created_at' => fake()->dateTimeBetween('-6 months', 'now'),
+            'created_at' => fake()->dateTimeBetween('-24 months', 'now'),
         ];
     }
 }

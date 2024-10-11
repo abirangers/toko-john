@@ -89,7 +89,31 @@ export interface CartItem {
 export interface Cart {
     id: number;
     user_id: number;
+    user: User;
     cart_items: CartItem[];
+}
+
+export interface Province {
+    id: string;
+    name: string;
+}
+
+export interface Regency {
+    id: string;
+    province_id: string;
+    name: string;
+}
+
+export interface District {
+    id: string;
+    regency_id: string;
+    name: string;
+}
+
+export interface Village {
+    id: string;
+    district_id: string;
+    name: string;
 }
 
 export type PageProps<

@@ -34,8 +34,8 @@ const CartItem = ({ product }: { product: Product }) => {
 
             <div>
                 <Link
-                    href={route("cart.removeFromCart", {
-                        productId: product.id,
+                    href={route("cart.destroy", {
+                        product_id: product.id,
                     })}
                     method="delete"
                     onSuccess={() => {

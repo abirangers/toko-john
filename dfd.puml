@@ -1,0 +1,13 @@
+@startuml Level0
+title Level 0 DFD: Context Diagram of eCommerce System
+
+entity (Customer) {
+}
+
+process("eCommerce System") as ecommerce {
+}
+
+dataflow(Customer, ecommerce, "Order Information")
+dataflow(ecommerce, Customer, "Order Confirmation")
+
+@enduml

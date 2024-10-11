@@ -5,21 +5,19 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Order;
 use Inertia\Inertia;
+use Midtrans\Config;
 use App\Mail\PaymentSuccessMail;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\DB;
 
 class PaymentController extends Controller
 {
     public function payment($order_code)
     {
-        // Set your Merchant Server Key
-        \Midtrans\Config::$serverKey = "SB-Mid-server-gtPw11TxOdOmPx_IbLAbC7rD";
-        // Set to Development/Sandbox Environment (default). Set to true for Production Environment (accept real transaction).
-        \Midtrans\Config::$isProduction = env('MIDTRANS_IS_PRODUCTION', false);
-        // Set sanitization on (default)
-        \Midtrans\Config::$isSanitized = true;
-        // Set 3DS transaction for credit card to true
-        \Midtrans\Config::$is3ds = true;
+        Config::$serverKey = config('midtrans.server_key');
+        Config::$isProduction = config('midtrans.is_production');
+        Config::$isSanitized = config('midtrans.is_sanitized');
+        Config::$is3ds = config('midtrans.is_3ds');
 
         $order = Order::with(['user', 'orderItems.product'])->where('order_code', $order_code)->firstOrFail();
 
@@ -29,43 +27,65 @@ class PaymentController extends Controller
         $params = array(
             'transaction_details' => array(
                 'order_id' => $unique_order_id,
-                'gross_amount' => intval($order->total_price), // Ensure gross_amount is an integer
+                'gross_amount' => intval($order->total_price),
             ),
             'customer_details' => array(
-                'name' => $order->user->name,
+                'first_name' => $order->user->name,
                 'email' => $order->user->email,
             ),
+            'item_details' => $order->orderItems->map(function ($item) {
+                return [
+                    'id' => $item->product->id,
+                    'price' => intval($item->product->price),
+                    'quantity' => $item->quantity,
+                    'name' => $item->product->title,
+                ];
+            })->toArray(),
         );
 
-        $snapToken = \Midtrans\Snap::getSnapToken($params);
-
-        return Inertia::render('Payment/Index', compact('order', 'snapToken'));
-    }   
+        try {
+            \Log::info('Midtrans API Request:', $params);
+            $snapToken = \Midtrans\Snap::getSnapToken($params);
+            \Log::info('Midtrans API Response:', ['snapToken' => $snapToken]);
+            return Inertia::render('Payment/Index', compact('order', 'snapToken'));
+        } catch (\Exception $e) {
+            \Log::error('Midtrans API Error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'An error occurred while processing your payment. Please try again later.');
+        }
+    }
 
     public function paymentSuccess(Request $request, $order_code)
     {
-        $order = Order::where('order_code', $order_code)->firstOrFail();
-        $order->status = 'paid';
-        $order->payment_date = $request->transaction_time; // Store the payment date and time
-        $order->save();
+        \Log::info('Payment success process started for order: ' . $order_code);
+        DB::beginTransaction();
 
-        // Update product stock
-        foreach ($order->orderItems as $orderItem) {
-            $product = $orderItem->product;
-            $product->stock -= $orderItem->quantity;
-            $product->save();
+        try {
+            $order = Order::where('order_code', $order_code)->lockForUpdate()->firstOrFail();
+            $order->status = 'paid';
+            $order->save();
+
+            foreach ($order->orderItems as $orderItem) {
+                $product = $orderItem->product;
+                $oldStock = $product->stock;
+                $product->stock -= $orderItem->quantity;
+                $product->save();
+            }
+
+            $paymentDetails = [
+                'name' => $order->user->name,
+                'order_id' => $order->order_code,
+                'total' => $order->total_price,
+                'payment_date' => $order->created_at->format('d F Y H:i:s'),
+            ];
+
+            DB::commit();
+
+            Mail::to($order->user->email)->send(new PaymentSuccessMail($paymentDetails));
+
+            return redirect()->route('order.index')->with('success', 'Payment successful and order status updated.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'An error occurred while processing your payment. Please try again later.');
         }
-
-        $paymentDetails = [
-            'name' => $order->user->name,
-            'order_id' => $order->order_code,
-            'total' => $order->orderItems->sum('product.price'),
-            'payment_date' => $order->payment_date->format('d F Y H:i:s'), // Include payment date and time in the details
-        ];
-
-        // Perform any additional actions after payment success, e.g., sending a confirmation email
-        Mail::to($order->user->email)->send(new PaymentSuccessMail($paymentDetails));
-
-        return redirect()->route('order.index')->with('success', 'Payment successful and order status updated.');
     }
 }

@@ -17,9 +17,10 @@ class DatabaseSeeder extends Seeder
             PermissionSeeder::class,
             PermissionGroupSeeder::class,
             UserSeeder::class,
-            OrderSeeder::class,
             CategorySeeder::class,
             ProductSeeder::class,
+            OrderSeeder::class,
+            IndoRegionSeeder::class, // Import data Provinsi, Kota/Kabupaten, Kecamatan/Distrik, dan Kelurahan
         ]);
     }
 }

@@ -80,6 +80,60 @@ export default function ShowOrder({ order }: { order: Order }) {
                     />
                 </div>
                 <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700">
+                        Province
+                    </label>
+                    <input
+                        type="text"
+                        value={order.province_name}
+                        disabled
+                        className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    />
+                </div>
+                <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700">
+                        Regency
+                    </label>
+                    <input
+                        type="text"
+                        value={order.regency_name}
+                        disabled
+                        className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    />
+                </div>
+                <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700">
+                        District
+                    </label>
+                    <input
+                        type="text"
+                        value={order.district_name}
+                        disabled
+                        className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    />
+                </div>
+                <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700">
+                        Village
+                    </label>
+                    <input
+                        type="text"
+                        value={order.village_name}
+                        disabled
+                        className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    />
+                </div>
+                <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700">
+                        Address
+                    </label>
+                    <textarea
+                        value={order.address}
+                        disabled
+                        className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    />
+                </div>
+                <div className="mb-4">
                     <h2 className="text-lg font-semibold">Products</h2>
                     <div className="grid grid-cols-3 gap-4 mt-2">
                         {order.order_items.map((item) => (
@@ -93,7 +147,10 @@ export default function ShowOrder({ order }: { order: Order }) {
                                     className="object-cover w-full h-32 mb-2 rounded-md"
                                 />
                                 <h2 className="text-lg font-semibold">
-                                    {item.product.title} <span className="text-blue-600">x{item.quantity}</span>
+                                    {item.product.title}{" "}
+                                    <span className="text-blue-600">
+                                        x{item.quantity}
+                                    </span>
                                 </h2>
                                 <p className="text-sm text-gray-500">
                                     {item.product.category.name}

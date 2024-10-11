@@ -21,7 +21,7 @@ export function formatDate(date: Date | string): string {
     if (!isFinite(parsedDate.getTime())) {
         throw new RangeError("date value is not finite");
     }
-    return new Intl.DateTimeFormat("id-ID").format(parsedDate);
+    return parsedDate.toLocaleString('id-ID', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
 }
 
 export const getMediaUrl = (filepath: string) => {

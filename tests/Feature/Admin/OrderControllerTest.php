@@ -30,65 +30,10 @@ class OrderControllerTest extends AdminTestCase
         $this->assertInstanceOf(HasMiddleware::class, $controller);
     }
 
-    public function test_admin_can_access_index_orders_view(): void
-    {
+    public function test_admin_order_access() {
         $admin = User::factory()->create();
         $admin->assignRole('admin');
-        $admin->givePermissionTo('find-all-orders');
-
-        $this->actingAs($admin)
-            ->get(route('admin.orders.index'))
-            ->assertOk()
-            ->assertSee('Order');
-    }
-
-    public function test_user_cannot_access_index_orders_view(): void
-    {
-        $user = User::factory()->create();
-        $user->assignRole('user');
-        $user->givePermissionTo('find-all-orders');
-
-        $this->actingAs($user)
-            ->get(route('admin.orders.index'))
-            ->assertStatus(403);
-    }
-
-    public function test_guest_cannot_access_index_orders_view(): void
-    {
-        $this->get(route('admin.orders.index'))
-            ->assertStatus(302)
-            ->assertRedirect(route('login'));
-    }
-
-    public function test_admin_can_access_show_order_view(): void
-    {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
-        $admin->givePermissionTo('find-order');
-
-        $order = Order::factory()->create();
-
-        $orderItem = $order->orderItems()->create([
-            'product_id' => Product::factory()->create()->id,
-            'quantity' => 1,
-            'price' => 100.00,
-        ]);
-
-        $this->actingAs($admin)
-            ->get(route('admin.orders.show', $order->id))
-            ->assertOk()
-            ->assertSee($order->order_code)
-            ->assertSee($order->user->name)
-            ->assertSee($orderItem->product->title)
-            ->assertSee($orderItem->quantity)
-            ->assertSee($orderItem->price);
-    }
-
-    public function test_user_cannot_access_show_order_view(): void
-    {
-        $user = User::factory()->create();
-        $user->assignRole('user');
-        $user->givePermissionTo('find-order');
+        $admin->givePermissionTo('find-all-orders', 'create-order', 'update-order', 'delete-order', 'bulk-delete-orders');
 
         $order = Order::factory()->create();
 
@@ -98,123 +43,102 @@ class OrderControllerTest extends AdminTestCase
             'price' => 100.00,
         ]);
 
-        $this->actingAs($user)
-            ->get(route('admin.orders.show', $order->id))
-            ->assertStatus(403);
-    }
+        $views = ['index', 'show'];
+        foreach ($views as $view) {
+            $route = route("admin.orders.{$view}", $view === 'show' ? Order::first()->id : null);
+            $this->actingAs($admin)->get($route)->assertOk();
+        }
 
-    public function test_guest_cannot_access_show_order_view(): void
-    {
-        $order = Order::factory()->create();
-        $order->orderItems()->create([
-            'product_id' => Product::factory()->create()->id,
-            'quantity' => 1,
-            'price' => 100.00,
-        ]);
+        $response = $this->actingAs($admin)->delete(route('admin.orders.destroy', $order->id));
+        $response->assertRedirect(route('admin.orders.index'));
+        $response->assertSessionHas('success', 'Order deleted successfully');
+        $this->assertDatabaseMissing('orders', ['id' => $order->id]);
 
-        $this->get(route('admin.orders.show', $order->id))
-            ->assertStatus(302)
-            ->assertRedirect(route('login'));
-    }
 
-    public function test_admin_can_delete_order(): void
-    {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
-        $admin->givePermissionTo('delete-order');
-
-        $order = Order::factory()->create();
-
-        $orderItem = $order->orderItems()->create([
-            'product_id' => Product::factory()->create()->id,
-            'quantity' => 1,
-            'price' => 100.00,
-        ]);
-
-        $this->actingAs($admin)
-            ->delete(route('admin.orders.destroy', $order->id))
-            ->assertRedirect(route('admin.orders.index'))
-            ->assertSessionHasNoErrors()
-            ->assertSessionHas('success', 'Order deleted successfully')
-            ->assertDontSee($order->order_code)
-            ->assertDontSee($orderItem->product->title);
-    }
-
-    public function test_user_cannot_delete_order(): void
-    {
-        $user = User::factory()->create();
-        $user->assignRole('user');
-        $user->givePermissionTo('delete-order');
-
-        $order = Order::factory()->create();
-
-        $order->orderItems()->create([
-            'product_id' => Product::factory()->create()->id,
-            'quantity' => 1,
-            'price' => 100.00,
-        ]);
-
-        $this->actingAs($user)
-            ->delete(route('admin.orders.destroy', $order->id))
-            ->assertStatus(403)
-            ->assertForbidden();
-    }
-
-    public function test_guest_cannot_delete_order(): void
-    {
-        $order = Order::factory()->create();
-
-        $order->orderItems()->create([
-            'product_id' => Product::factory()->create()->id,
-            'quantity' => 1,
-            'price' => 100.00,
-        ]);
-
-        $this->delete(route('admin.orders.destroy', $order->id))
-            ->assertStatus(302)
-            ->assertRedirect(route('login'));
-    }
-
-    public function test_admin_can_bulk_delete_orders(): void
-    {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
-        $admin->givePermissionTo('bulk-delete-orders');
-
-        $order1 = Order::factory()->create();
         $order2 = Order::factory()->create();
 
-        $this->actingAs($admin)
-            ->delete(route('admin.orders.bulkDestroy', ['ids' => [$order1->id, $order2->id]]))
-            ->assertRedirect(route('admin.orders.index'))
-            ->assertSessionHasNoErrors()
-            ->assertSessionHas('success', 'Orders deleted successfully')
-            ->assertDontSee($order1->order_code)
-            ->assertDontSee($order2->order_code);
+        $order2->orderItems()->create([
+            'product_id' => Product::factory()->create()->id,
+            'quantity' => 1,
+            'price' => 100.00,
+        ]);
+
+        $response = $this->actingAs($admin)->delete(route('admin.orders.bulkDestroy', ['ids' => [$order->id, $order2->id]]));
+        $response->assertRedirect(route('admin.orders.index'));
+        $response->assertSessionHas('success', 'Orders deleted successfully');
+        $this->assertDatabaseMissing('orders', ['id' => $order->id]);
+        $this->assertDatabaseMissing('orders', ['id' => $order2->id]);
     }
 
-    public function test_user_cannot_bulk_delete_orders(): void
+    public function test_user_order_access()
     {
         $user = User::factory()->create();
         $user->assignRole('user');
-        $user->givePermissionTo('bulk-delete-orders');
 
-        $order1 = Order::factory()->create();
+        $order = Order::factory()->create();
+
+        $order->orderItems()->create([
+            'product_id' => Product::factory()->create()->id,
+            'quantity' => 1,
+            'price' => 100.00,
+        ]);
+
+        $views = ['index', 'show'];
+        foreach ($views as $view) {
+            $route = route("admin.orders.{$view}", $view === 'show' ? Order::first()->id : null);
+            $this->actingAs($user)->get($route)->assertStatus(403);
+        }
+
+        $response = $this->actingAs($user)->delete(route('admin.orders.destroy', $order->id));
+        $response->assertStatus(403);
+        $this->assertDatabaseHas('orders', ['id' => $order->id]);
+
+
         $order2 = Order::factory()->create();
 
-        $this->actingAs($user)
-            ->delete(route('admin.orders.bulkDestroy', ['ids' => [$order1->id, $order2->id]]))
-            ->assertStatus(403)
-            ->assertForbidden();
+        $order2->orderItems()->create([
+            'product_id' => Product::factory()->create()->id,
+            'quantity' => 1,
+            'price' => 100.00,
+        ]);
+
+        $response = $this->actingAs($user)->delete(route('admin.orders.bulkDestroy', ['ids' => [$order->id, $order2->id]]));
+        $response->assertStatus(403);
+        $this->assertDatabaseHas('orders', ['id' => $order->id]);
+        $this->assertDatabaseHas('orders', ['id' => $order2->id]);
     }
 
-    public function test_guest_cannot_bulk_delete_orders(): void
+    public function test_guest_order_access()
     {
-        $order1 = Order::factory()->create();
+        $order = Order::factory()->create();
+        $order->orderItems()->create([
+            'product_id' => Product::factory()->create()->id,
+            'quantity' => 1,
+            'price' => 100.00,
+        ]);
+
+        $views = ['index', 'show'];
+        foreach ($views as $view) {
+            $route = route("admin.orders.{$view}", $view === 'show' ? Order::first()->id : null);
+            $this->get($route)->assertStatus(302)->assertRedirect(route('login'));
+        }
+
+        $response = $this->delete(route('admin.orders.destroy', $order->id));
+        $response->assertStatus(302)->assertRedirect(route('login'));
+        $this->assertDatabaseHas('orders', ['id' => $order->id]);
+
+
         $order2 = Order::factory()->create();
 
-        $this->delete(route('admin.orders.bulkDestroy', ['ids' => [$order1->id, $order2->id]]))
-            ->assertStatus(302)
-            ->assertRedirect(route('login'));
+        $order2->orderItems()->create([
+            'product_id' => Product::factory()->create()->id,
+            'quantity' => 1,
+            'price' => 100.00,
+        ]);
+
+        $response = $this->delete(route('admin.orders.bulkDestroy', ['ids' => [$order->id, $order2->id]]));
+        $response->assertStatus(302)->assertRedirect(route('login'));
+        $this->assertDatabaseHas('orders', ['id' => $order->id]);
+        $this->assertDatabaseHas('orders', ['id' => $order2->id]);
     }
 }

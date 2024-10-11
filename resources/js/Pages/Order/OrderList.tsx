@@ -54,6 +54,10 @@ const OrderList = ({ order }: { order: Order }): React.JSX.Element => {
             onError: () => {
                 setDeleting(false);
             },
+            onFinish: () => {
+                setOpen(false);
+                setDeleting(false);
+            }
         });
     };
 
@@ -94,7 +98,7 @@ const OrderList = ({ order }: { order: Order }): React.JSX.Element => {
                                     Complete
                                 </DropdownMenuItem>
                             )}
-                            {order.status === "paid" && (
+                            {order.status === "pending" && (
                                 <DropdownMenuItem
                                     onClick={() =>
                                         router.get(

@@ -11,16 +11,11 @@ class DashboardController extends Controller
 {
     public function getOrdersPerMonth(Request $request)
     {
-        // Determine the time range based on the selected option
-        $timeRange = $request->input('timeRange', 'past 12 months');
-        $monthsBack = match ($timeRange) {
-            'past 3 months' => 3,
-            'past 6 months' => 6,
-            default => 12,
-        };
+        // Determine the year based on the selected option
+        $year = $request->input('year', Carbon::now()->year);
 
-        // Get orders per month within the selected time range
-        $ordersPerMonth = Order::where('created_at', '>=', Carbon::now()->subMonths($monthsBack))
+        // Get orders per month within the selected year
+        $ordersPerMonth = Order::whereYear('created_at', $year)
             ->selectRaw('MONTH(created_at) as month, COUNT(*) as total')
             ->groupBy('month')
             ->orderBy('month')

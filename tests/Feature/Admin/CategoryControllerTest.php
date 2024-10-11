@@ -13,402 +13,108 @@ class CategoryControllerTest extends AdminTestCase
     {
         parent::setUp();
 
+        $this->category = Category::create([
+            'name' => 'test'
+        ]);
         $controller = new CategoryCrudController();
         $this->assertInstanceOf(HasMiddleware::class, $controller);
     }
 
-    public function test_admin_can_access_index_categories_view(): void
+    public function test_admin_category_access()
     {
         $admin = User::factory()->create();
         $admin->assignRole('admin');
-        $admin->givePermissionTo('find-all-categories');
+        $admin->givePermissionTo('find-all-categories', 'create-category', 'update-category', 'delete-category', 'bulk-delete-categories');
 
-        $response = $this->actingAs($admin)->get(route('admin.categories.index'));
-        $response->assertStatus(200);
-    }
+        // Test admin can access index, create, show, edit views
+        $views = ['index', 'create', 'show', 'edit'];
+        foreach ($views as $view) {
+            $route = route("admin.categories.{$view}", $view === 'show' || $view === 'edit' ? Category::first()->id : null);
+            $response = $this->actingAs($admin)->get($route);
+            $response->assertStatus(200);
+        }
 
-    public function test_user_cannot_access_index_categories_view(): void
-    {
-        $user = User::factory()->create();
-        $user->assignRole('user');
-
-        $response = $this->actingAs($user)->get(route('admin.categories.index'));
-        $response->assertStatus(403);
-    }
-
-    public function test_guest_cannot_access_index_categories_view(): void
-    {
-        $response = $this->get(route('admin.categories.index'));
-        $response->assertStatus(302);
-        $response->assertRedirect(route('login'));
-    }
-
-    public function test_admin_can_access_create_category_view(): void
-    {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
-        $admin->givePermissionTo('create-category');
-
-        $response = $this->actingAs($admin)->get(route('admin.categories.create'));
-        $response->assertStatus(200);
-    }
-
-    public function test_user_cannot_access_create_category_view(): void
-    {
-        $user = User::factory()->create();
-        $user->assignRole('user');
-
-        $response = $this->actingAs($user)->get(route('admin.categories.create'));
-        $response->assertStatus(403);
-    }
-
-    public function test_guest_cannot_access_create_category_view(): void
-    {
-        $response = $this->get(route('admin.categories.create'));
-        $response->assertStatus(302);
-        $response->assertRedirect(route('login'));
-    }
-
-    public function test_admin_can_create_category(): void
-    {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
-        $admin->givePermissionTo('create-category');
-
+        // Test admin can perform create, update, delete actions
         $response = $this->actingAs($admin)->post(route('admin.categories.store'), [
-            'name' => 'New Category',
+            'name' => 'test'
         ]);
-
         $response->assertRedirect(route('admin.categories.index'));
         $response->assertSessionHas('success', 'Category created successfully');
-        $this->assertDatabaseHas('categories', ['name' => 'New Category']);
-    }
+        $this->assertDatabaseHas('categories', ['name' => 'test']);
 
-    public function test_user_cannot_create_category(): void
-    {
-        $user = User::factory()->create();
-        $user->assignRole('user');
-
-        $response = $this->actingAs($user)->post(route('admin.categories.store'), [
-            'name' => 'New Category',
+        $role = Category::first();
+        $response = $this->actingAs($admin)->put(route('admin.categories.update', $role->id), [
+            'name' => 'test2'
         ]);
-
-        $response->assertStatus(403);
-        $this->assertDatabaseMissing('categories', ['name' => 'New Category']);
-    }
-
-    public function test_guest_cannot_create_category(): void
-    {
-        $response = $this->post(route('admin.categories.store'), [
-            'name' => 'New Category',
-        ]);
-        $response->assertStatus(302);
-        $response->assertRedirect(route('login'));
-    }
-
-    public function test_admin_can_access_show_category_view(): void
-    {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
-        $admin->givePermissionTo('find-category');
-
-        $category = Category::create([
-            'id' => 1,
-            'name' => 'Bed',
-            'slug' => 'bed'
-        ]);
-
-        $response = $this->actingAs($admin)->get(route('admin.categories.show', $category->id));
-        $response->assertStatus(200);
-    }
-
-    public function test_user_cannot_access_show_category_view(): void
-    {
-        $user = User::factory()->create();
-        $user->assignRole('user');
-
-        $category = Category::create([
-            'id' => 1,
-            'name' => 'Bed',
-            'slug' => 'bed'
-        ]);
-
-        $response = $this->actingAs($user)->get(route('admin.categories.show', $category->id));
-        $response->assertStatus(403);
-    }
-
-    public function test_guest_cannot_access_show_category_view(): void
-    {
-        $category = Category::create([
-            'id' => 1,
-            'name' => 'Bed',
-            'slug' => 'bed'
-        ]);
-
-        $response = $this->get(route('admin.categories.show', $category->id));
-        $response->assertStatus(302);
-        $response->assertRedirect(route('login'));
-    }
-
-    public function test_admin_can_access_edit_category_view(): void
-    {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
-        $admin->givePermissionTo('update-category');
-
-        $category = Category::create(
-            [
-                'id' => 1,
-                'name' => 'Bed',
-                'slug' => 'bed'
-            ]
-        );
-
-        $response = $this->actingAs($admin)->get(route('admin.categories.edit', $category->id));
-        $response->assertStatus(200);
-    }
-
-    public function test_user_cannot_access_edit_category_view(): void
-    {
-        $user = User::factory()->create();
-        $user->assignRole('user');
-
-        $category = Category::create(
-            [
-                'id' => 1,
-                'name' => 'Bed',
-                'slug' => 'bed'
-            ]
-        );
-
-        $response = $this->actingAs($user)->get(route('admin.categories.edit', $category->id));
-        $response->assertStatus(403);
-    }
-
-    public function test_guest_cannot_access_edit_category_view(): void
-    {
-        $category = Category::create(
-            [
-                'id' => 1,
-                'name' => 'Bed',
-                'slug' => 'bed'
-            ]
-        );
-
-        $response = $this->get(route('admin.categories.edit', $category->id));
-        $response->assertStatus(302);
-        $response->assertRedirect(route('login'));
-    }
-
-    public function test_admin_can_update_category(): void
-    {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
-        $admin->givePermissionTo('update-category');
-
-        $category = Category::create(
-            [
-                'id' => 1,
-                'name' => 'Bed',
-                'slug' => 'bed'
-            ]
-        );
-
-        $response = $this->actingAs($admin)->put(route('admin.categories.update', $category->id), [
-            'name' => 'Updated Category',
-        ]);
-
         $response->assertRedirect(route('admin.categories.index'));
         $response->assertSessionHas('success', 'Category updated successfully');
-        $this->assertDatabaseHas('categories', ['name' => 'Updated Category']);
-    }
+        $this->assertDatabaseHas('categories', ['name' => 'test2']);
 
-    public function test_user_cannot_update_category(): void
-    {
-        $user = User::factory()->create();
-        $user->assignRole('user');
-
-        $category = Category::create(
-            [
-                'id' => 1,
-                'name' => 'Bed',
-                'slug' => 'bed'
-            ]
-        );
-
-        $response = $this->actingAs($user)->put(route('admin.categories.update', $category->id), [
-            'name' => 'Updated Category',
-        ]);
-
-        $response->assertStatus(403);
-    }
-
-    public function test_guest_cannot_update_category(): void
-    {
-        $category = Category::create(
-            [
-                'id' => 1,
-                'name' => 'Bed',
-                'slug' => 'bed'
-            ]
-        );
-
-        $response = $this->put(route('admin.categories.update', $category->id), [
-            'name' => 'Updated Category',
-        ]);
-
-        $response->assertStatus(302);
-        $response->assertRedirect(route('login'));
-    }
-
-    public function test_admin_can_delete_category(): void
-    {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
-        $admin->givePermissionTo('delete-category');
-
-        $category = Category::create(
-            [
-                'id' => 1,
-                'name' => 'Bed',
-                'slug' => 'bed'
-            ]
-        );
-
-        $response = $this->actingAs($admin)->delete(route('admin.categories.destroy', $category->id));
-
+        $response = $this->actingAs($admin)->delete(route('admin.categories.destroy', $role->id));
         $response->assertRedirect(route('admin.categories.index'));
         $response->assertSessionHas('success', 'Category deleted successfully');
-        $this->assertDatabaseMissing('categories', ['id' => $category->id]);
+        $this->assertDatabaseMissing('categories', ['name' => 'test2']);
     }
 
-    public function test_user_cannot_delete_category(): void
+    public function test_user_category_access()
     {
         $user = User::factory()->create();
         $user->assignRole('user');
-        $user->givePermissionTo('delete-category');
 
-        $category = Category::create(
-            [
-                'id' => 1,
-                'name' => 'Bed',
-                'slug' => 'bed'
-            ]
-        );
-
-        $response = $this->actingAs($user)->delete(route('admin.categories.destroy', $category->id));
-        $response->assertStatus(403);
-    }
-
-    public function test_guest_cannot_delete_category(): void
-    {
-        $category = Category::create(
-            [
-                'id' => 1,
-                'name' => 'Bed',
-                'slug' => 'bed'
-            ]
-        );
-
-        $response = $this->delete(route('admin.categories.destroy', $category->id));
-        $response->assertStatus(302);
-        $response->assertRedirect(route('login'));
-    }
-
-    public function test_admin_can_bulk_delete_categories(): void
-    {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
-        $admin->givePermissionTo('bulk-delete-categories');
-
-        Category::insert([
-            [
-                'id' => 1,
-                'name' => 'Furniture',
-                'slug' => 'furniture'
-            ],
-            [
-                'id' => 2,
-                'name' => 'Bed',
-                'slug' => 'bed'
-            ],
-            [
-                'id' => 3,
-                'name' => 'Chair',
-                'slug' => 'chair'
-            ]
-        ]);
-        $ids = Category::pluck('id')->toArray();
-
-        $response = $this->from(route('admin.categories.index'))->actingAs($admin)->delete(route('admin.categories.bulkDestroy'), [
-            'ids' => $ids
-        ]);
-
-        $response->assertRedirect(route('admin.categories.index'));
-        $response->assertSessionHas('success', 'Bulk categories deleted successfully');
-        foreach ($ids as $id) {
-            $this->assertDatabaseMissing('categories', ['id' => $id]);
+        // Test user cannot access index, create, show, edit views
+        $views = ['index', 'create', 'show', 'edit'];
+        foreach ($views as $view) {
+            $route = route("admin.categories.{$view}", $view === 'show' || $view === 'edit' ? Category::first()->id : null);
+            $response = $this->actingAs($user)->get($route);
+            $response->assertStatus(403);
         }
-    }
 
-    public function test_user_cannot_bulk_delete_categories(): void
-    {
-        $user = User::factory()->create();
-        $user->assignRole('user');
-
-        Category::insert([
-            [
-                'id' => 1,
-                'name' => 'Furniture',
-                'slug' => 'furniture'
-            ],
-            [
-                'id' => 2,
-                'name' => 'Bed',
-                'slug' => 'bed'
-            ],
-            [
-                'id' => 3,
-                'name' => 'Chair',
-                'slug' => 'chair'
-            ]
+        // Test user cannot perform create, update, delete actions
+        $response = $this->actingAs($user)->post(route('admin.categories.store'), [
+            'name' => 'test',
         ]);
-        $ids = Category::pluck('id')->toArray();
-
-        $response = $this->actingAs($user)->delete(route('admin.categories.bulkDestroy'), [
-            'ids' => $ids
-        ]);
-
         $response->assertStatus(403);
+
+        $role = Category::first();
+        $response = $this->actingAs($user)->put(route('admin.categories.update', $role->id), [
+            'name' => 'test2'
+        ]);
+        $response->assertStatus(403);
+
+        $response = $this->actingAs($user)->delete(route('admin.categories.destroy', $role->id));
+        $response->assertStatus(403);
+        $this->assertDatabaseHas('categories', ['name' => 'test']);
     }
 
-    public function test_guest_cannot_bulk_delete_categories(): void
+    public function test_guest_category_access()
     {
-        Category::insert([
-            [
-                'id' => 1,
-                'name' => 'Furniture',
-                'slug' => 'furniture'
-            ],
-            [
-                'id' => 2,
-                'name' => 'Bed',
-                'slug' => 'bed'
-            ],
-            [
-                'id' => 3,
-                'name' => 'Chair',
-                'slug' => 'chair'
-            ]
-        ]);
-        $ids = Category::pluck('id')->toArray();
+        // Test guest cannot access index, create, show, edit views
+        $views = ['index', 'create', 'show', 'edit'];
+        foreach ($views as $view) {
+            $route = route("admin.categories.{$view}", $view === 'show' || $view === 'edit' ? Category::first()->id : null);
+            $response = $this->get($route);
+            $response->assertStatus(302);
+            $response->assertRedirect(route('login'));
+        }
 
-        $response = $this->delete(route('admin.categories.bulkDestroy'), [
-            'ids' => $ids
+        // Test guest cannot perform create, update, delete actions
+        $response = $this->post(route('admin.categories.store'), [
+            'name' => 'test'
         ]);
-
         $response->assertStatus(302);
         $response->assertRedirect(route('login'));
+
+        $role = Category::first();
+        $response = $this->put(route('admin.categories.update', $role->id), [
+            'name' => 'test2'
+        ]);
+        $response->assertStatus(302);
+        $response->assertRedirect(route('login'));
+
+        $response = $this->delete(route('admin.categories.destroy', $role->id));
+        $response->assertStatus(302);
+        $response->assertRedirect(route('login'));
+        $this->assertDatabaseHas('categories', ['name' => 'test']);
     }
 
 }

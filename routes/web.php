@@ -1,23 +1,24 @@
 <?php
 
-use App\Http\Controllers\Admin\CategoryCrudController;
+use Inertia\Inertia;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Foundation\Application;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\RegionController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Admin\RoleCrudController;
+use App\Http\Controllers\Admin\UserCrudController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\MediaCrudController;
 use App\Http\Controllers\Admin\OrderCrudController;
 use App\Http\Controllers\Admin\ProductCrudController;
-use App\Http\Controllers\Admin\UserCrudController;
-use App\Http\Controllers\Admin\RoleCrudController;
+use App\Http\Controllers\Admin\CategoryCrudController;
 use App\Http\Controllers\Admin\PermissionCrudController;
 use App\Http\Controllers\Admin\PermissionGroupCrudController;
-use App\Http\Controllers\CartController;
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\OrderController;
-use App\Http\Controllers\PaymentController;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\ProfileController;
-use Illuminate\Foundation\Application;
-use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 // Route::get('/', function () {
 //     return Inertia::render('Welcome', [
@@ -27,6 +28,10 @@ use Inertia\Inertia;
 //         'phpVersion' => PHP_VERSION,
 //     ]);
 // });
+
+Route::get('/', [HomeController::class, 'index'])->name('home.index');
+Route::get('/products', [ProductController::class, 'index'])->name('product.index');
+Route::get('/products/{slug}', [ProductController::class, 'show'])->name('product.show');
 
 Route::prefix('admin')->middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::redirect('/', 'admin/dashboard');
@@ -115,7 +120,6 @@ Route::prefix('admin')->middleware(['auth', 'verified', 'role:admin'])->group(fu
         'update' => 'admin.orders.update',
         'destroy' => 'admin.orders.destroy',
     ]);
-
 });
 
 Route::middleware('auth')->group(function () {
@@ -125,21 +129,23 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
     Route::post('/cart', [CartController::class, 'store'])->middleware(['role:user'])->name('cart.store');
-    Route::post('/cart/add', [CartController::class, 'addToCart'])->name('cart.addToCart');
-    Route::delete('/cart/remove/{productId}', [CartController::class, 'removeFromCart'])->name('cart.removeFromCart');
+    Route::delete('/cart/{product_id}', [CartController::class, 'destroy'])->name('cart.destroy');
 
     Route::get('/orders', [OrderController::class, 'index'])->name('order.index');
+    Route::get('/orders/create', [OrderController::class, 'create'])->middleware(['role:user'])->name('order.create');
     Route::get('/orders/{id}', [OrderController::class, 'show'])->middleware(['role:user'])->name('order.show');
-    Route::get('/orders/{id}/checkout', [OrderController::class, 'create'])->middleware(['role:user'])->name('order.create');
-    Route::post('/orders/{id}', [OrderController::class, 'store'])->middleware(['role:user'])->name('order.store');
+    Route::post('/orders', [OrderController::class, 'store'])->middleware(['role:user'])->name('order.store');
     Route::delete('/orders/{id}', [OrderController::class, 'destroy'])->middleware(['role:user'])->name('order.destroy');
 
     Route::get('/payment/{order_code}', [PaymentController::class, 'payment'])->middleware(['role:user'])->name('payment');
     Route::put('/payment/{order_code}/success', [PaymentController::class, 'paymentSuccess'])->middleware(['role:user'])->name('payment.success');
 });
 
-Route::get('/', [HomeController::class, 'index'])->name('home.index');
-Route::get('/products', [ProductController::class, 'index'])->name('product.index');
-Route::get('/products/{slug}', [ProductController::class, 'show'])->name('product.show');
+Route::prefix('region')->group(function () {
+    Route::get('/provinces', [RegionController::class, 'provinces']);
+    Route::get('/regencies/{province_id}', [RegionController::class, 'regencies']);
+    Route::get('/districts/{regency_id}', [RegionController::class, 'districts']);
+    Route::get('/villages/{district_id}', [RegionController::class, 'villages']);
+});
 
 require __DIR__ . '/auth.php';

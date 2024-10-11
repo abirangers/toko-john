@@ -41,7 +41,7 @@ class PaymentSuccessMail extends Mailable
         return new Content(
             view: 'emails.payment_success',
             with: [
-                'paymentDetails' => $this->paymentDetails,
+                'payment' => $this->paymentDetails,
             ],
         );
     }

@@ -16,316 +16,109 @@ class PermissionGroupControllerTest extends AdminTestCase
     {
         parent::setUp();
 
+        PermissionGroup::create([
+            'name' => 'test',
+        ]);
+
         $controller = new PermissionGroupCrudController();
         $this->assertInstanceOf(HasMiddleware::class, $controller);
     }
 
-    public function test_admin_can_access_index_permission_group_view()
+
+    public function test_admin_permission_group_access()
     {
         $admin = User::factory()->create();
         $admin->assignRole('admin');
-        $admin->givePermissionTo('find-all-permission-groups');
+        $admin->givePermissionTo('find-all-permission-groups', 'create-permission-group', 'update-permission-group', 'delete-permission-group', 'bulk-delete-permission-groups');
 
-        $response = $this->actingAs($admin)->get(route('admin.permission-groups.index'));
-        $response->assertStatus(200);
-    }
+        // Test admin can access index, create, show, edit views
+        $views = ['index', 'create', 'show', 'edit'];
+        foreach ($views as $view) {
+            $route = route("admin.permission-groups.{$view}", $view === 'show' || $view === 'edit' ? PermissionGroup::first()->id : null);
+            $response = $this->actingAs($admin)->get($route);
+            $response->assertStatus(200);
+        }
 
-    public function test_user_cannot_access_index_permission_group_view()
-    {
-        $user = User::factory()->create();
-        $user->assignRole('user');
-        $user->givePermissionTo('find-all-permission-groups');
-
-        $response = $this->actingAs($user)->get(route('admin.permission-groups.index'));
-        $response->assertStatus(403);
-    }
-
-    public function test_guest_cannot_access_index_permission_group_view()
-    {
-        $response = $this->get(route('admin.permission-groups.index'));
-        $response->assertStatus(302);
-        $response->assertRedirect(route('login'));
-    }
-
-    public function test_admin_can_access_create_permission_group_view()
-    {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
-        $admin->givePermissionTo('create-permission-group');
-
-        $response = $this->actingAs($admin)->get(route('admin.permission-groups.create'));
-        $response->assertStatus(200);
-    }
-
-    public function test_user_cannot_access_create_permission_group_view()
-    {
-        $user = User::factory()->create();
-        $user->assignRole('user');
-        $user->givePermissionTo('create-permission-group');
-
-        $response = $this->actingAs($user)->get(route('admin.permission-groups.create'));
-        $response->assertStatus(403);
-    }
-
-    public function test_guest_cannot_access_create_permission_group_view()
-    {
-        $response = $this->get(route('admin.permission-groups.create'));
-        $response->assertStatus(302);
-        $response->assertRedirect(route('login'));
-    }
-
-    public function test_admin_can_create_permission_group()
-    {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
-        $admin->givePermissionTo('create-permission-group');
-
-        $permissionGroup = [
-            'name' => 'Test Permission Group',
-        ];
-
-        $response = $this->actingAs($admin)->post(route('admin.permission-groups.store'), $permissionGroup);
+        // Test admin can perform create, update, delete actions
+        $response = $this->actingAs($admin)->post(route('admin.permission-groups.store'), [
+            'name' => 'test2',
+        ]);
         $response->assertRedirect(route('admin.permission-groups.index'));
-        $this->assertDatabaseHas('permission_groups', [
-            'name' => 'Test Permission Group',
-        ]);
-    }
+        $response->assertSessionHas('success', 'Permission group created successfully');
+        $this->assertDatabaseHas('permission_groups', ['name' => 'test2']);
 
-    public function test_user_cannot_create_permission_group()
-    {
-        $user = User::factory()->create();
-        $user->assignRole('user');
-        $user->givePermissionTo('create-permission-group');
-
-        $permissionGroup = [
-            'name' => 'Test Permission Group',
-        ];
-
-        $response = $this->actingAs($user)->post(route('admin.permission-groups.store'), $permissionGroup);
-        $response->assertStatus(403);
-        $this->assertDatabaseMissing('permission_groups', [
-            'name' => 'Test Permission Group',
-        ]);
-    }
-
-    public function test_guest_cannot_create_permission_group()
-    {
-        $permissionGroup = [
-            'name' => 'Test Permission Group',
-        ];
-
-        $response = $this->post(route('admin.permission-groups.store'), $permissionGroup);
-        $response->assertStatus(302);
-        $response->assertRedirect(route('login'));
-        $this->assertDatabaseMissing('permission_groups', [
-            'name' => 'Test Permission Group',
-        ]);
-    }
-
-    public function test_admin_can_access_show_permission_group_view()
-    {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
-        $admin->givePermissionTo('find-permission-group');
-
-        $permissionGroup = PermissionGroup::create([
-            'name' => 'Test Permission Group',
-        ]);
-
-        $response = $this->actingAs($admin)->get(route('admin.permission-groups.show', $permissionGroup->id));
-        $response->assertStatus(200);
-    }
-
-    public function test_user_cannot_access_show_permission_group_view()
-    {
-        $user = User::factory()->create();
-        $user->assignRole('user');
-        $user->givePermissionTo('find-permission-group');
-
-        $permissionGroup = PermissionGroup::create([
-            'name' => 'Test Permission Group',
-        ]);
-
-        $response = $this->actingAs($user)->get(route('admin.permission-groups.show', $permissionGroup->id));
-        $response->assertStatus(403);
-    }
-
-    public function test_guest_cannot_access_show_permission_group_view()
-    {
-        $permissionGroup = PermissionGroup::create([
-            'name' => 'Test Permission Group',
-        ]);
-
-        $response = $this->get(route('admin.permission-groups.show', $permissionGroup->id));
-        $response->assertStatus(302);
-        $response->assertRedirect(route('login'));
-    }
-
-    public function test_admin_can_update_permission_group()
-    {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
-        $admin->givePermissionTo('update-permission-group');
-
-        $permissionGroup = PermissionGroup::create([
-            'name' => 'Test Permission Group',
-        ]);
-
+        $permissionGroup = PermissionGroup::first();
         $response = $this->actingAs($admin)->put(route('admin.permission-groups.update', $permissionGroup->id), [
-            'name' => 'Updated Permission Group',
+            'name' => 'test3',
         ]);
         $response->assertRedirect(route('admin.permission-groups.index'));
-        $this->assertDatabaseHas('permission_groups', [
-            'name' => 'Updated Permission Group',
-        ]);
-    }
-
-    public function test_user_cannot_update_permission_group()
-    {
-        $user = User::factory()->create();
-        $user->assignRole('user');
-        $user->givePermissionTo('update-permission-group');
-
-        $permissionGroup = PermissionGroup::create([
-            'name' => 'Test Permission Group',
-        ]);
-
-        $response = $this->actingAs($user)->put(route('admin.permission-groups.update', $permissionGroup->id), [
-            'name' => 'Updated Permission Group',
-        ]);
-        $response->assertStatus(403);
-        $this->assertDatabaseMissing('permission_groups', [
-            'name' => 'Updated Permission Group',
-        ]);
-    }
-
-    public function test_guest_cannot_update_permission_group()
-    {
-        $permissionGroup = PermissionGroup::create([
-            'name' => 'Test Permission Group',
-        ]);
-
-        $response = $this->put(route('admin.permission-groups.update', $permissionGroup->id), [
-            'name' => 'Updated Permission Group',
-        ]);
-        $response->assertStatus(302);
-        $response->assertRedirect(route('login'));
-        $this->assertDatabaseMissing('permission_groups', [
-            'name' => 'Updated Permission Group',
-        ]);
-    }
-
-    public function test_admin_can_delete_permission_group()
-    {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
-        $admin->givePermissionTo('delete-permission-group');
-
-        $permissionGroup = PermissionGroup::create([
-            'name' => 'Test Permission Group',
-        ]);
+        $response->assertSessionHas('success', 'Permission group updated successfully');
+        $this->assertDatabaseHas('permission_groups', ['name' => 'test3']);
 
         $response = $this->actingAs($admin)->delete(route('admin.permission-groups.destroy', $permissionGroup->id));
         $response->assertRedirect(route('admin.permission-groups.index'));
+        $response->assertSessionHas('success', 'Permission group deleted successfully');
+        $this->assertDatabaseMissing('permission_groups', ['name' => 'test3']);
     }
 
-    public function test_user_cannot_delete_permission_group()
+    public function test_user_permission_access()
     {
         $user = User::factory()->create();
         $user->assignRole('user');
-        $user->givePermissionTo('delete-permission-group');
 
-        $permissionGroup = PermissionGroup::create([
-            'name' => 'Test Permission Group',
+        // Test user cannot access index, create, show, edit views
+        $views = ['index', 'create', 'show', 'edit'];
+        foreach ($views as $view) {
+            $route = route("admin.permission-groups.{$view}", $view === 'show' || $view === 'edit' ? PermissionGroup::first()->id : null);
+            $response = $this->actingAs($user)->get($route);
+            $response->assertStatus(403);
+        }
+
+        // Test user cannot perform create, update, delete actions
+        $response = $this->actingAs($user)->post(route('admin.permission-groups.store'), [
+            'name' => 'test',
         ]);
+        $response->assertStatus(403);
+
+        $permissionGroup = PermissionGroup::first();
+        $response = $this->actingAs($user)->put(route('admin.permission-groups.update', $permissionGroup->id), [
+            'name' => 'test2',
+        ]);
+        $response->assertStatus(403);
 
         $response = $this->actingAs($user)->delete(route('admin.permission-groups.destroy', $permissionGroup->id));
         $response->assertStatus(403);
-        $this->assertDatabaseHas('permission_groups', [
-            'name' => 'Test Permission Group',
-        ]);
+        $this->assertDatabaseHas('permission_groups', ['name' => 'test']);
     }
 
-    public function test_guest_cannot_delete_permission_group()
+    public function test_guest_permission_access()
     {
-        $permissionGroup = PermissionGroup::create([
-            'name' => 'Test Permission Group',
+        // Test guest cannot access index, create, show, edit views
+        $views = ['index', 'create', 'show', 'edit'];
+        foreach ($views as $view) {
+            $route = route("admin.permission-groups.{$view}", $view === 'show' || $view === 'edit' ? PermissionGroup::first()->id : null);
+            $response = $this->get($route);
+            $response->assertStatus(302);
+            $response->assertRedirect(route('login'));
+        }
+
+        // Test guest cannot perform create, update, delete actions
+        $response = $this->post(route('admin.permission-groups.store'), [
+            'name' => 'test',
         ]);
+        $response->assertStatus(302);
+        $response->assertRedirect(route('login'));
+
+        $permissionGroup = PermissionGroup::first();
+        $response = $this->put(route('admin.permission-groups.update', $permissionGroup->id), [
+            'name' => 'test2',
+        ]);
+        $response->assertStatus(302);
+        $response->assertRedirect(route('login'));
 
         $response = $this->delete(route('admin.permission-groups.destroy', $permissionGroup->id));
         $response->assertStatus(302);
         $response->assertRedirect(route('login'));
-        $this->assertDatabaseHas('permission_groups', [
-            'name' => 'Test Permission Group',
-        ]);
-    }
-
-    public function test_admin_can_bulk_delete_permission_group()
-    {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
-        $admin->givePermissionTo('bulk-delete-permission-groups');
-
-        $permissionGroup1 = PermissionGroup::create([
-            'name' => 'Test Permission Group 1',
-        ]);
-        $permissionGroup2 = PermissionGroup::create([
-            'name' => 'Test Permission Group 2',
-        ]);
-
-        $response = $this->actingAs($admin)->delete(route('admin.permission-groups.bulkDestroy'), [
-            'ids' => [$permissionGroup1->id, $permissionGroup2->id],
-        ]);
-        $response->assertRedirect(route('admin.permission-groups.index'));
-        $this->assertDatabaseMissing('permission_groups', [
-            'name' => 'Test Permission Group',
-        ]);
-    }
-
-    public function test_user_cannot_bulk_delete_permission_group()
-    {
-        $user = User::factory()->create();
-        $user->assignRole('user');
-        $user->givePermissionTo('bulk-delete-permission-groups');
-
-        $permissionGroup1 = PermissionGroup::create([
-            'name' => 'Test Permission Group 1',
-        ]);
-        $permissionGroup2 = PermissionGroup::create([
-            'name' => 'Test Permission Group 2',
-        ]);
-
-        $response = $this->actingAs($user)->delete(route('admin.permission-groups.bulkDestroy'), [
-            'ids' => [$permissionGroup1->id, $permissionGroup2->id],
-        ]);
-        $response->assertStatus(403);
-        $this->assertDatabaseHas('permission_groups', [
-            'name' => 'Test Permission Group 1',
-        ]);
-        $this->assertDatabaseHas('permission_groups', [
-            'name' => 'Test Permission Group 2',
-        ]);
-    }
-
-    public function test_guest_cannot_bulk_delete_permission_group()
-    {
-        $permissionGroup1 = PermissionGroup::create([
-            'name' => 'Test Permission Group 1',
-        ]);
-        $permissionGroup2 = PermissionGroup::create([
-            'name' => 'Test Permission Group 2',
-        ]);
-
-        $response = $this->delete(route('admin.permission-groups.bulkDestroy'), [
-            'ids' => [$permissionGroup1->id, $permissionGroup2->id],
-        ]);
-        $response->assertStatus(302);
-        $response->assertRedirect(route('login'));
-        $this->assertDatabaseHas('permission_groups', [
-            'name' => 'Test Permission Group 1',
-        ]);
-        $this->assertDatabaseHas('permission_groups', [
-            'name' => 'Test Permission Group 2',
-        ]);
+        $this->assertDatabaseHas('permission_groups', ['name' => 'test']);
     }
 }

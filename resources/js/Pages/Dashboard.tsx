@@ -13,7 +13,7 @@ export default function Dashboard({ auth }: PageProps) {
         totalCategory,
         totalOrder,
         ordersPerMonth,
-        selectedTimeRange,
+        selectedYear,
     } = usePage().props as unknown as {
         totalUser: number;
         totalProduct: number;
@@ -23,7 +23,7 @@ export default function Dashboard({ auth }: PageProps) {
             month: string;
             total: number;
         }[];
-        selectedTimeRange: string;
+        selectedYear: number;
     };
     return (
         <DashboardLayout>
@@ -87,7 +87,7 @@ export default function Dashboard({ auth }: PageProps) {
                     <div className="mt-4">
                         <Chart
                             initialOrdersPerMonth={ordersPerMonth}
-                            initialSelectedTimeRange={selectedTimeRange}
+                            initialSelectedYear={selectedYear}
                         />
                     </div>
                 </div>

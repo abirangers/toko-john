@@ -20,51 +20,11 @@ class CartController extends Controller
      */
     public function index()
     {
-        $cart = Cart::with(['cartItems.product.category'])->where("user_id", Auth::user()->id)->first();
+        $cart = Cart::with(['cartItems.product.category'])->where("user_id", Auth::user()->id)->firstOrFail();
         return Inertia::render('Cart/Index', compact('cart'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(CartRequest $request)
-    {
-        DB::beginTransaction();
-
-        try {
-            $cart = Cart::with('cartItems.product')->findOrFail($request->cart_id);
-
-            $totalPrice = $cart->cartItems->sum(fn ($cartItem) => $cartItem->quantity * $cartItem->product->price);
-
-            $order = Order::create([
-                'user_id' => Auth::user()->id,
-                'total_price' => $totalPrice,
-                'status' => 'pending',
-            ]);
-
-            foreach ($cart->cartItems as $cartItem) {
-                OrderItem::create([
-                    'order_id' => $order->id,
-                    'product_id' => $cartItem->product_id,
-                    'quantity' => $cartItem->quantity,
-                    'price' => $cartItem->product->price,
-                ]);
-            }
-
-            $cart->cartItems()->delete();
-
-            DB::commit();
-
-            return redirect()->route('order.create', ['id' => $order->id]);
-        } catch (\Exception $th) {
-            DB::rollBack();
-            return back()->with([
-                'error' => $th->getMessage()
-            ]);
-        }
-    }
-
-    public function addToCart(Request $request): \Illuminate\Http\RedirectResponse
+    public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
         $request->validate([
             'product_id' => 'required|exists:products,id',
@@ -107,13 +67,13 @@ class CartController extends Controller
         }
     }
 
-    public function removeFromCart(Request $request, $productId)
+    public function destroy(Request $request)
     {
         DB::beginTransaction();
 
         try {
             $cart = $request->user()->carts()->firstOrFail();
-            $cartItem = $cart->cartItems()->where('product_id', $productId)->firstOrFail();
+            $cartItem = $cart->cartItems()->where('product_id', $request->product_id)->firstOrFail();
             $cartItem->delete();
 
             DB::commit();

@@ -24,9 +24,7 @@ class MediaController extends Controller
             });
 
             $media = $mediaQuery->get();
-
             foreach ($media as $m) {
-                Log::info($m);
                 $m->url = asset('storage/' . $m->path);
             }
 

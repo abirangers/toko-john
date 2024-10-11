@@ -26,48 +26,42 @@ const chartConfig = {
 
 export default function Chart({
     initialOrdersPerMonth,
-    initialSelectedTimeRange,
+    initialSelectedYear,
 }: {
     initialOrdersPerMonth: { month: string; orders: number }[];
-    initialSelectedTimeRange: string;
+    initialSelectedYear: number;
 }) {
-    const [selectedOption, setSelectedOption] = useState(
-        initialSelectedTimeRange
-    );
+    const [selectedYear, setSelectedYear] = useState(initialSelectedYear);
     const [ordersPerMonth, setOrdersPerMonth] = useState(initialOrdersPerMonth);
 
     useEffect(() => {
         const fetchData = async () => {
             const response = await axios.get("/api/dashboard", {
-                params: { timeRange: selectedOption },
+                params: { year: selectedYear },
             });
             setOrdersPerMonth(response.data.data);
         };
 
         fetchData();
-    }, [selectedOption]);
+    }, [selectedYear]);
 
     return (
         <div className="chart-wrapper">
-            <div className="chart-header flex justify-between items-center mb-4">
+            <div className="flex items-center justify-between mb-4 chart-header">
                 <h2 className="text-xl font-semibold">Total Order</h2>
-                <Select
-                    value={selectedOption}
-                    onValueChange={setSelectedOption}
-                >
+                <Select value={selectedYear} onValueChange={setSelectedYear}>
                     <SelectTrigger className="max-w-[200px]">
                         <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="past 12 months">
-                            Past 12 Months
-                        </SelectItem>
-                        <SelectItem value="past 6 months">
-                            Past 6 Months
-                        </SelectItem>
-                        <SelectItem value="past 3 months">
-                            Past 3 Months
-                        </SelectItem>
+                        {[...Array(10)].map((_, i) => {
+                            const yearOption = new Date().getFullYear() - i;
+                            return (
+                                <SelectItem key={yearOption} value={yearOption}>
+                                    {yearOption}
+                                </SelectItem>
+                            );
+                        })}
                     </SelectContent>
                 </Select>
             </div>

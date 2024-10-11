@@ -23,12 +23,13 @@ class DashboardController extends Controller
         $totalCategory = Category::count();
         $totalOrder = Order::count();
 
-        $selectedTimeRange = $request->input('timeRange', 'past 12 months');
+        $selectedYear = $request->input('year', Carbon::now()->year);
 
-        // Get orders per month
-        $ordersPerMonth = Order::selectRaw('MONTH(created_at) as month, COUNT(*) as total')
+        // Get orders per month for the selected year
+        $ordersPerMonth = Order::whereYear('created_at', $selectedYear)
+            ->selectRaw('MONTH(created_at) as month, COUNT(*) as total')
             ->groupBy('month')
-            ->orderBy('month') // Ensure the months are ordered
+            ->orderBy('month')
             ->get()
             ->map(function ($order) {
                 return [
@@ -43,7 +44,7 @@ class DashboardController extends Controller
             'totalCategory' => $totalCategory,
             'totalOrder' => $totalOrder,
             'ordersPerMonth' => $ordersPerMonth,
-            'selectedTimeRange' => $selectedTimeRange,
+            'selectedYear' => $selectedYear,
         ]);
     }
 }

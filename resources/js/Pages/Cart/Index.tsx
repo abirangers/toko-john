@@ -11,9 +11,9 @@ const CartPage = ({ auth, cart }: PageProps<{ cart: Cart }>) => {
 
     const handleSubmit = () => {
         setIsDisabled(true);
-        router.post(
-            route("cart.store"),
-            { cart_id: cart?.id },
+        router.get(
+            route("order.create"),
+            undefined,
             {
                 onFinish: () => {
                     setIsDisabled(false);

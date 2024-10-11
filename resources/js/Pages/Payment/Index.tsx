@@ -24,8 +24,11 @@ const IndexPayment: React.FC<IndexPaymentProps> = ({
         let scriptTag = document.createElement("script");
         scriptTag.src = midtransScriptUrl;
 
-        const myMidtransClientKey = "SB-Mid-client-kO1_HQO7NanUbblu";
-        scriptTag.setAttribute("data-client-key", myMidtransClientKey);
+        // Ubah ini
+        const myMidtransClientKey = import.meta.env.VITE_MIDTRANS_CLIENT_KEY;
+        if (myMidtransClientKey) {
+            scriptTag.setAttribute("data-client-key", myMidtransClientKey);
+        }
 
         document.body.appendChild(scriptTag);
 

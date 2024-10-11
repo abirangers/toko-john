@@ -1,11 +1,12 @@
 import { Button } from "@/Components/ui/button";
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
+import { Textarea } from "@/Components/ui/textarea";
 import MainLayout from "@/Layouts/MainLayout";
-import { Order } from "@/types";
-import { Link, router, useForm } from "@inertiajs/react";
+import { Cart, Province, Regency, District, Village } from "@/types";
+import { Link, useForm, router } from "@inertiajs/react";
 import { ExternalLink } from "lucide-react";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
     Dialog,
     DialogContent,
@@ -13,27 +14,44 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/Components/ui/dialog";
-import { useState, useEffect } from "react";
+import {
+    getProvinces,
+    getRegencies,
+    getDistricts,
+    getVillages,
+} from "@/services/region.services";
 import { toast } from "sonner";
+import { ComboBoxResponsive } from "@/Components/ComboBoxResponsive";
 
 interface OrderCheckoutProps {
-    order: Order;
+    cart: Cart;
 }
 
-const OrderCheckout: React.FC<OrderCheckoutProps> = ({ order }) => {
-    const [isOpen, setIsOpen] = useState(false);
+const OrderCheckout: React.FC<OrderCheckoutProps> = ({ cart }) => {
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isOrderSuccessful, setIsOrderSuccessful] = useState(false);
+    const [provinces, setProvinces] = useState<Province[]>([]);
+    const [regencies, setRegencies] = useState<Regency[]>([]);
+    const [districts, setDistricts] = useState<District[]>([]);
+    const [villages, setVillages] = useState<Village[]>([]);
 
     const form = useForm({
-        name: order?.user?.name ?? "",
-        email: order?.user?.email ?? "",
+        name: cart.user.name,
+        email: cart.user.email,
+        cart_id: cart.id,
+        province_id: "",
+        regency_id: "",
+        district_id: "",
+        village_id: "",
+        address: "",
     });
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         try {
-            form.post(route("order.store", order.id), {
+            form.post(route("order.store"), {
                 onSuccess: (params) => {
+                    console.log(params);
                     const flash = params.props.flash as {
                         error: string;
                     };
@@ -42,9 +60,14 @@ const OrderCheckout: React.FC<OrderCheckoutProps> = ({ order }) => {
                         toast.error(flash.error);
                         return;
                     }
-
+                    
                     setIsOrderSuccessful(true);
-                    setIsOpen(true);
+                    setIsDialogOpen(true);
+                    form.reset();
+                },
+                onError: (error) => {
+                    console.log(error);
+                    toast.error("Something went wrong");
                 },
             });
         } catch (error) {
@@ -53,15 +76,49 @@ const OrderCheckout: React.FC<OrderCheckoutProps> = ({ order }) => {
     };
 
     useEffect(() => {
-        if (!isOpen && isOrderSuccessful) {
+        if (!isDialogOpen && isOrderSuccessful) {
             router.visit(route("order.index"));
         }
-    }, [isOpen, isOrderSuccessful]);
+        console.log(isDialogOpen);
+    }, [isDialogOpen, isOrderSuccessful]);
+
+    useEffect(() => {
+        getProvinces().then((res) => {
+            setProvinces(res.data);
+        });
+    }, []);
+
+    useEffect(() => {
+        if (form.data.province_id) {
+            getRegencies(form.data.province_id).then((res) => {
+                setRegencies(res.data);
+                setDistricts([]);
+                setVillages([]);
+            });
+        }
+    }, [form.data.province_id]);
+
+    useEffect(() => {
+        if (form.data.regency_id) {
+            getDistricts(form.data.regency_id).then((res) => {
+                setDistricts(res.data);
+                setVillages([]);
+            });
+        }
+    }, [form.data.regency_id]);
+
+    useEffect(() => {
+        if (form.data.district_id) {
+            getVillages(form.data.district_id).then((res) => {
+                setVillages(res.data);
+            });
+        }
+    }, [form.data.district_id]);
 
     return (
-        <MainLayout user={order.user}>
+        <MainLayout user={cart.user}>
             <div className="container py-8 mx-auto">
-                <h1 className="mb-6 text-4xl font-extrabold tracking-tight text-center">
+                <h1 className="mb-8 text-4xl font-extrabold tracking-tight text-center">
                     Product Checkout
                 </h1>
                 <div className="p-8 border rounded-lg">
@@ -69,13 +126,16 @@ const OrderCheckout: React.FC<OrderCheckoutProps> = ({ order }) => {
                         Product Name
                     </p>
                     <ul className="mb-6 space-y-2">
-                        {order.order_items.map((item) => (
+                        {cart.cart_items.map((item) => (
                             <li
                                 key={item.id}
-                                className="text-lg font-medium text-gray-700 hover:text-primary"
+                                className="text-lg font-medium text-gray-700 hover:text-primary w-fit hover:underline"
                             >
                                 <Link
-                                    href={route("product.show", item.product.slug)}
+                                    href={route(
+                                        "product.show",
+                                        item.product.slug
+                                    )}
                                     className="flex items-center gap-x-2"
                                 >
                                     {item.product.title}{" "}
@@ -84,8 +144,8 @@ const OrderCheckout: React.FC<OrderCheckoutProps> = ({ order }) => {
                             </li>
                         ))}
                     </ul>
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        <div>
+                    <form onSubmit={handleSubmit}>
+                        <div className="mb-4">
                             <Label
                                 htmlFor="name"
                                 className="block text-sm font-medium text-gray-700"
@@ -99,10 +159,16 @@ const OrderCheckout: React.FC<OrderCheckoutProps> = ({ order }) => {
                                 onChange={(e) =>
                                     form.setData("name", e.target.value)
                                 }
+                                disabled
                                 className="block w-full mt-1 border-gray-300 rounded-md shadow-sm"
                             />
+                            {form.errors.name && (
+                                <p className="mt-2 text-sm text-red-500">
+                                    {form.errors.name}
+                                </p>
+                            )}
                         </div>
-                        <div>
+                        <div className="mb-4">
                             <Label
                                 htmlFor="email"
                                 className="block text-sm font-medium text-gray-700"
@@ -116,10 +182,135 @@ const OrderCheckout: React.FC<OrderCheckoutProps> = ({ order }) => {
                                 onChange={(e) =>
                                     form.setData("email", e.target.value)
                                 }
+                                disabled
                                 className="block w-full mt-1 border-gray-300 rounded-md shadow-sm"
                             />
+                            {form.errors.email && (
+                                <p className="mt-2 text-sm text-red-500">
+                                    {form.errors.email}
+                                </p>
+                            )}
                         </div>
-                        <div className="flex justify-end space-x-4">
+                        <div className="mb-4">
+                            <Label
+                                htmlFor="province_id"
+                                className="block text-sm font-medium text-gray-700"
+                            >
+                                Province
+                            </Label>
+                            <ComboBoxResponsive
+                                items={provinces.map((province) => ({
+                                    label: province.name,
+                                    value: province.id,
+                                }))}
+                                placeholder="Pilih Provinsi"
+                                value={form.data.province_id}
+                                onChange={(value) => {
+                                    form.setData("province_id", value);
+                                }}
+                            />
+                            {form.errors.province_id && (
+                                <p className="mt-2 text-sm text-red-500">
+                                    {form.errors.province_id}
+                                </p>
+                            )}
+                        </div>
+                        <div className="mb-4">
+                            <Label
+                                htmlFor="regency_id"
+                                className="block text-sm font-medium text-gray-700"
+                            >
+                                Regency
+                            </Label>
+                            <ComboBoxResponsive
+                                items={regencies.map((regency) => ({
+                                    label: regency.name,
+                                    value: regency.id,
+                                }))}
+                                placeholder="Pilih Kota/Kabupaten"
+                                value={form.data.regency_id}
+                                onChange={(value) =>
+                                    form.setData("regency_id", value)
+                                }
+                            />
+                            {form.errors.regency_id && (
+                                <p className="mt-2 text-sm text-red-500">
+                                    {form.errors.regency_id}
+                                </p>
+                            )}
+                        </div>
+                        <div className="mb-4">
+                            <Label
+                                htmlFor="district_id"
+                                className="block text-sm font-medium text-gray-700"
+                            >
+                                District
+                            </Label>
+                            <ComboBoxResponsive
+                                items={districts.map((district) => ({
+                                    label: district.name,
+                                    value: district.id,
+                                }))}
+                                placeholder="Pilih Kecamatan"
+                                value={form.data.district_id}
+                                onChange={(value) =>
+                                    form.setData("district_id", value)
+                                }
+                            />
+                            {form.errors.district_id && (
+                                <p className="mt-2 text-sm text-red-500">
+                                    {form.errors.district_id}
+                                </p>
+                            )}
+                        </div>
+                        <div className="mb-4">
+                            <Label
+                                htmlFor="village_id"
+                                className="block text-sm font-medium text-gray-700"
+                            >
+                                Village
+                            </Label>
+                            <ComboBoxResponsive
+                                items={villages.map((village) => ({
+                                    label: village.name,
+                                    value: village.id,
+                                }))}
+                                placeholder="Pilih Desa/Kelurahan"
+                                value={form.data.village_id}
+                                onChange={(value) =>
+                                    form.setData("village_id", value)
+                                }
+                            />
+                            {form.errors.village_id && (
+                                <p className="mt-2 text-sm text-red-500">
+                                    {form.errors.village_id}
+                                </p>
+                            )}
+                        </div>
+                        <div className="mb-4">
+                            <Label
+                                htmlFor="address"
+                                className="block text-sm font-medium text-gray-700"
+                            >
+                                Full Address
+                            </Label>
+                            <Textarea
+                                id="address"
+                                name="address"
+                                placeholder="Masukkan alamat lengkap"
+                                value={form.data.address}
+                                onChange={(e) =>
+                                    form.setData("address", e.target.value)
+                                }
+                                className="mt-2"
+                            />
+                            {form.errors.address && (
+                                <p className="mt-2 text-sm text-red-500">
+                                    {form.errors.address}
+                                </p>
+                            )}
+                        </div>
+                        <div className="flex justify-end pt-2 space-x-4">
                             <Button
                                 variant="outline"
                                 type="button"
@@ -141,7 +332,7 @@ const OrderCheckout: React.FC<OrderCheckoutProps> = ({ order }) => {
                 </div>
             </div>
 
-            <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle className="flex justify-center">

@@ -21,407 +21,313 @@ class UserControllerTest extends AdminTestCase
         $controller = new UserCrudController();
         $this->assertInstanceOf(HasMiddleware::class, $controller);
     }
-    public function test_admin_can_access_index_users_view()
+
+    public function test_admin_user_access()
     {
         $admin = User::factory()->create();
         $admin->assignRole('admin');
-        $admin->givePermissionTo('find-all-users');
+        $admin->givePermissionTo('find-all-users', 'create-user', 'update-user', 'delete-user', 'bulk-delete-users');
 
-        $response = $this->actingAs($admin)->get(route('admin.users.index'));
-        $response->assertStatus(200);
-    }
-
-    public function test_user_cannot_access_index_users_view()
-    {
-        $user = User::factory()->create();
-        $user->assignRole('user');
-        $user->givePermissionTo('find-all-users');
-
-        $response = $this->actingAs($user)->get(route('admin.users.index'));
-        $response->assertStatus(403);
-    }
-
-    public function test_guest_cannot_access_index_users_view()
-    {
-        $response = $this->get(route('admin.users.index'));
-        $response->assertStatus(302);
-        $response->assertRedirect(route('login'));
-    }
-
-    public function test_admin_can_access_create_user_view()
-    {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
-        $admin->givePermissionTo('create-user');
-
-        $response = $this->actingAs($admin)->get(route('admin.users.create'));
-        $response->assertStatus(200);
-    }
-
-    public function test_user_cannot_access_create_user_view()
-    {
-        $user = User::factory()->create();
-        $user->assignRole('user');
-        $user->givePermissionTo('create-user');
-
-        $response = $this->actingAs($user)->get(route('admin.users.create'));
-        $response->assertStatus(403);
-    }
-
-    public function test_guest_cannot_access_create_user_view()
-    {
-        $response = $this->get(route('admin.users.create'));
-        $response->assertStatus(302);
-        $response->assertRedirect(route('login'));
-    }
-
-    public function test_admin_can_create_user()
-    {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
-        $admin->givePermissionTo('create-user');
-
-        $data = [
+        $user = User::create([
             'name' => 'Test User',
             'email' => 'testuser@example.com',
             'password' => 'password123',
             'confirm_password' => 'password123',
             'role' => 'user',
-        ];
-
-        $response = $this->actingAs($admin)->post(route('admin.users.store'), $data);
-
-        $response->assertRedirect(route('admin.users.index'));
-        $response->assertSessionHas('success', 'User created successfully.');
-        $this->assertDatabaseHas('users', [
-            'name' => 'Test User',
-            'email' => 'testuser@example.com',
         ]);
-    }
 
-    public function test_user_cannot_create_user()
-    {
-        $user = User::factory()->create();
-        $user->assignRole('user');
-        $user->givePermissionTo('create-user');
+        // Test admin can access index, create, show, edit views
+        $views = ['index', 'create', 'show', 'edit'];
+        foreach ($views as $view) {
+            $route = route("admin.users.{$view}", $view === 'show' || $view === 'edit' ? $user->id : null);
+            $response = $this->actingAs($admin)->get($route);
+            $response->assertStatus(200);
+        }
 
-        $data = [
-            'name' => 'Test User',
-            'email' => 'testuser@example.com',
+        // Test admin can create user
+        $response = $this->actingAs($admin)->post(route('admin.users.store'), [
+            'name' => 'Test User2',
+            'email' => 'testuser2@example.com',
             'password' => 'password123',
             'confirm_password' => 'password123',
             'role' => 'user',
-        ];
+        ]);
+        $response->assertRedirect(route('admin.users.index'));
+        $response->assertSessionHas('success', 'User created successfully');
+        $this->assertDatabaseHas('users', ['name' => 'Test User2']);
 
-        $response = $this->actingAs($user)->post(route('admin.users.store'), $data);
-        $response->assertStatus(403);
-    }
-
-    public function test_guest_cannot_create_user()
-    {
-        $response = $this->post(route('admin.users.store'));
-        $response->assertStatus(302);
-        $response->assertRedirect(route('login'));
-    }
-
-    public function test_admin_can_create_user_with_admin_role()
-    {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
-        $admin->givePermissionTo('create-user');
-
-        $data = [
-            'name' => 'admin',
-            'email' => 'admin@gmail.com',
+        // Test admin can create user with admin role
+        $response = $this->actingAs($admin)->post(route('admin.users.store'), [
+            'name' => 'test admin',
+            'email' => 'testadmin@gmail.com',
             'password' => 'password123',
             'confirm_password' => 'password123',
             'role' => 'admin',
-        ];
-
-        $response = $this->actingAs($admin)->post(route('admin.users.store'), $data);
-
-        $response->assertRedirect(route('admin.users.index'));
-        $response->assertSessionHas('success', 'User created successfully.');
-        $this->assertDatabaseHas('users', [
-            'name' => 'admin',
-            'email' => 'admin@gmail.com',
         ]);
-    }
-
-    public function test_admin_can_access_show_user_view()
-    {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
-        $admin->givePermissionTo('find-all-users');
-
-        $user = User::factory()->create();
-
-        $response = $this->actingAs($admin)->get(route('admin.users.show', $user->id));
-        $response->assertStatus(200);
-    }
-
-    public function test_user_cannot_access_show_user_view()
-    {
-        $user = User::factory()->create();
-        $user->assignRole('user');
-        $user->givePermissionTo('find-all-users');
-
-        $user2 = User::factory()->create();
-
-        $response = $this->actingAs($user)->get(route('admin.users.show', $user->id));
-        $response->assertStatus(403);
-    }
-
-    public function test_guest_cannot_access_show_user_view()
-    {
-        $user = User::factory()->create();
-
-        $response = $this->get(route('admin.users.show', $user->id));
-        $response->assertStatus(302);
-        $response->assertRedirect(route('login'));
-    }
-
-    public function test_admin_can_access_edit_user_view()
-    {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
-        $admin->givePermissionTo('update-user');
-
-        $user = User::factory()->create();
-
-        $response = $this->actingAs($admin)->get(route('admin.users.edit', $user->id));
-        $response->assertStatus(200);
-    }
-
-    public function test_user_cannot_access_edit_user_view()
-    {
-        $user = User::factory()->create();
-        $user->assignRole('user');
-        $user->givePermissionTo('update-user');
-
-        $user = User::factory()->create();
-
-        $response = $this->actingAs($user)->get(route('admin.users.edit', $user->id));
-        $response->assertStatus(403);
-    }
-
-    public function test_guest_cannot_access_edit_user_view()
-    {
-        $user = User::factory()->create();
-        $response = $this->get(route('admin.users.edit', $user->id));
-        $response->assertStatus(302);
-        $response->assertRedirect(route('login'));
-    }
-
-    public function test_admin_can_update_user()
-    {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
-        $admin->givePermissionTo('update-user');
-
-        $user = User::factory()->create();
-        $user->assignRole('user');
-
-        $data = [
-            'name' => 'Updated User',
-            'email' => 'updateduser@example.com',
-            'password' => 'newpassword123',
-            'confirm_password' => 'newpassword123',
-            'role' => 'user',
-        ];
-
-        $response = $this->actingAs($admin)->put(route('admin.users.update', $user->id), $data);
-
         $response->assertRedirect(route('admin.users.index'));
-        $response->assertSessionHas('success', 'User updated successfully.');
-        $this->assertDatabaseHas('users', [
-            'id' => $user->id,
-            'name' => 'Updated User',
-            'email' => 'updateduser@example.com',
+        $response->assertSessionHas('success', 'User created successfully');
+        $this->assertDatabaseHas('users', ['name' => 'test admin']);
+
+        // Test admin can update user
+        $response = $this->actingAs($admin)->put(route('admin.users.update', $user->id), [
+            'name' => 'Test User Updated',
+            'email' => 'testuserupdated@example.com',
+            'password' => 'password123',
+            'confirm_password' => 'password123',
+            'role' => 'user',
         ]);
-    }
+        $response->assertRedirect(route('admin.users.index'));
+        $response->assertSessionHas('success', 'User updated successfully');
+        $this->assertDatabaseHas('users', ['name' => 'Test User Updated']);
 
-    public function test_user_cannot_update_user()
-    {
-        $user = User::factory()->create();
-        $user->assignRole('user');
-        $user->givePermissionTo('update-user');
-
-        $user = User::factory()->create();
-        $user->assignRole('user');
-
-        $data = [
-            'name' => 'Updated User',
-            'email' => 'updateduser@example.com',
-            'password' => 'newpassword123',
-            'confirm_password' => 'newpassword123',
-            'role' => 'user',
-        ];
-
-        $response = $this->actingAs($user)->put(route('admin.users.update', $user->id), $data);
-        $response->assertStatus(403);
-    }
-
-    public function test_guest_cannot_update_user()
-    {
-        $user = User::factory()->create();
-        $user->assignRole('user');
-
-        $data = [
-            'name' => 'Updated User',
-            'email' => 'updateduser@example.com',
-            'password' => 'newpassword123',
-            'confirm_password' => 'newpassword123',
-            'role' => 'user',
-        ];
-
-        $response = $this->put(route('admin.users.update', $user->id), $data);
-        $response->assertStatus(302);
-        $response->assertRedirect(route('login'));
-    }
-
-    public function test_admin_can_update_user_with_admin_role()
-    {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
-        $admin->givePermissionTo('update-user');
-
-        $user = User::factory()->create();
-        $user->assignRole('admin');
-
-        $data = [
-            'name' => 'Updated Admin',
-            'email' => 'updatedadmin@example.com',
-            'password' => 'newpassword123',
-            'confirm_password' => 'newpassword123',
+        // Test admin can update user with admin role
+        $response = $this->actingAs($admin)->put(route('admin.users.update', $admin->id), [
+            'name' => 'Test Admin Updated',
+            'email' => 'testadminupdated@gmail.com',
+            'password' => 'password123',
+            'confirm_password' => 'password123',
             'role' => 'admin',
-        ];
-
-        $response = $this->actingAs($admin)->put(route('admin.users.update', $user->id), $data);
-
-        $response->assertRedirect(route('admin.users.index'));
-        $response->assertSessionHas('success', 'User updated successfully.');
-        $this->assertDatabaseHas('users', [
-            'id' => $user->id,
-            'name' => 'Updated Admin',
-            'email' => 'updatedadmin@example.com',
         ]);
-    }
+        $response->assertRedirect(route('admin.users.index'));
+        $response->assertSessionHas('success', 'User updated successfully');
+        $this->assertDatabaseHas('users', ['name' => 'Test Admin Updated']);
 
-    public function test_admin_can_delete_user()
-    {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
-        $admin->givePermissionTo('delete-user');
-
-        $user = User::factory()->create();
-        $user->assignRole('user');
-
+        // Test admin can delete user
         $response = $this->actingAs($admin)->delete(route('admin.users.destroy', $user->id));
         $response->assertRedirect(route('admin.users.index'));
-        $response->assertSessionHas('success', 'User deleted successfully.');
-        $this->assertDatabaseMissing('users', ['id' => $user->id]);
+        $response->assertSessionHas('success', 'User deleted successfully');
+        $this->assertDatabaseMissing('users', ['name' => 'Test User Updated']);
+
+        // Test admin cannot delete user with admin role
+        $response = $this->actingAs($admin)->delete(route('admin.users.destroy', $admin->id));
+        $response->assertStatus(302);
+        $response->assertSessionHas('error', 'You cannot delete yourself');
+        $this->assertDatabaseHas('users', ['name' => 'Test Admin Updated']);
+
+        // Test admin can delete multiple users
+        $user2 = User::create([
+            'name' => 'Test User New',
+            'email' => 'testusernew@example.com',
+            'password' => 'password123',
+            'confirm_password' => 'password123',
+            'role' => 'user',
+        ]);
+
+        $response = $this->actingAs($admin)->delete(route('admin.users.bulkDestroy'), ['ids' => [$user->id, $user2->id]]);
+        $response->assertRedirect(route('admin.users.index'));
+        $response->assertSessionHas('success', 'Bulk users deleted successfully');
+        $this->assertDatabaseMissing('users', ['name' => 'Test User']);
+        $this->assertDatabaseMissing('users', ['name' => 'Test User New']);
+
+        // Test admin cannot delete multiple users with admin role
+        $admin2 = User::create([
+            'name' => 'test admin2',
+            'email' => 'testadmin2@gmail.com',
+            'password' => 'password123',
+            'confirm_password' => 'password123',
+            'role' => 'admin',
+        ]);
+
+        $response = $this->actingAs($admin)->delete(route('admin.users.bulkDestroy'), ['ids' => [$admin->id, $admin2->id]]);
+        $response->assertStatus(302);
+        $response->assertSessionHas('error', 'You cannot delete yourself');
+        $this->assertDatabaseHas('users', ['name' => 'test admin']);
+        $this->assertDatabaseHas('users', ['name' => 'test admin2']);
     }
 
-    public function test_user_cannot_delete_user()
+    public function test_user_user_access()
     {
-        $user = User::factory()->create();
+        $user = User::create([
+            'name' => 'Test User',
+            'email' => 'testuser@example.com',
+            'password' => 'password123',
+            'confirm_password' => 'password123',
+        ]);
         $user->assignRole('user');
-        $user->givePermissionTo('delete-user');
 
-        $user = User::factory()->create();
-        $user->assignRole('user');
+        // Test user cannot access index, create, show, edit views
+        $views = ['index', 'create', 'show', 'edit'];
+        foreach ($views as $view) {
+            $route = route("admin.users.{$view}", $view === 'show' || $view === 'edit' ? $user->id : null);
+            $response = $this->actingAs($user)->get($route);
+            $response->assertStatus(403);
+        }
 
+        // Test user cannot create user
+        $response = $this->actingAs($user)->post(route('admin.users.store'), [
+            'name' => 'Test User2',
+            'email' => 'testuser2@example.com',
+            'password' => 'password123',
+            'confirm_password' => 'password123',
+            'role' => 'user',
+        ]);
+        $response->assertStatus(403);
+        $this->assertDatabaseHas('users', ['name' => 'Test User']);
+
+        // Test user cannot create user with admin role
+        $response = $this->actingAs($user)->post(route('admin.users.store'), [
+            'name' => 'test admin',
+            'email' => 'testadmin@gmail.com',
+            'password' => 'password123',
+            'confirm_password' => 'password123',
+            'role' => 'admin',
+        ]);
+        $response->assertStatus(403);
+        $this->assertDatabaseHas('users', ['name' => 'Test User']);
+
+        // Test user cannot update user
+        $response = $this->actingAs($user)->put(route('admin.users.update', $user->id), [
+            'name' => 'Test User Updated',
+            'email' => 'testuserupdated@example.com',
+            'password' => 'password123',
+            'confirm_password' => 'password123',
+            'role' => 'user',
+        ]);
+        $response->assertStatus(403);
+        $this->assertDatabaseHas('users', ['name' => 'Test User']);
+
+        // Test user cannot update user with admin role
+        $response = $this->actingAs($user)->put(route('admin.users.update', $user->id), [
+            'name' => 'Test Admin Updated',
+            'email' => 'testadminupdated@gmail.com',
+            'password' => 'password123',
+            'confirm_password' => 'password123',
+            'role' => 'admin',
+        ]);
+        $response->assertStatus(403);
+        $this->assertDatabaseHas('users', ['name' => 'Test User']);
+
+        // Test user cannot delete user
         $response = $this->actingAs($user)->delete(route('admin.users.destroy', $user->id));
         $response->assertStatus(403);
-    }
+        $this->assertDatabaseHas('users', ['name' => 'Test User']);
 
-    public function test_guest_cannot_delete()
-    {
-        $user = User::factory()->create();
-        $user->assignRole('user');
-        $response = $this->delete(route('admin.users.destroy', $user->id));
-        $response->assertStatus(302);
-        $response->assertRedirect(route('login'));
-    }
-
-    public function test_admin_cannot_delete_user_with_admin_role()
-    {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
-        $admin->givePermissionTo('delete-user');
-
-        $user = User::factory()->create();
-        $user->assignRole('admin');
-
-        $response = $this->actingAs($admin)->delete(route('admin.users.destroy', $user->id));
-        $response->assertRedirect(route('admin.users.index'));
-        $response->assertSessionHas('error', 'Cannot delete admin user.');
-        $this->assertDatabaseHas('users', ['id' => $user->id]);
-    }
-
-    public function test_admin_can_bulk_delete_user()
-    {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
-        $admin->givePermissionTo('bulk-delete-users');
-
-        $users = User::factory()->count(3)->create();
-        foreach ($users as $user) {
-            $user->assignRole('user');
-        }
-        $ids = $users->pluck('id')->toArray();
-
-        $response = $this->actingAs($admin)->delete(route('admin.users.bulkDestroy'), ['ids' => $ids]);
-        $response->assertRedirect(route('admin.users.index'));
-        $response->assertSessionHas('success', 'Bulk users deleted successfully.');
-        $this->assertDatabaseMissing('users', ['id'=> $ids]);
-    }
-
-    public function test_user_cannot_bulk_delete_user()
-    {
-        $user = User::factory()->create();
-        $user->assignRole('user');
-        $user->givePermissionTo('bulk-delete-users');
-
-        $users = User::factory()->count(3)->create();
-        foreach ($users as $user) {
-            $user->assignRole('user');
-        }
-        $ids = $users->pluck('id')->toArray();
-
-        $response = $this->actingAs($user)->delete(route('admin.users.bulkDestroy'), ['ids' => $ids]);
+        // Test user cannot delete user with admin role
+        $response = $this->actingAs($user)->delete(route('admin.users.destroy', $user->id));
         $response->assertStatus(403);
+        $this->assertDatabaseHas('users', ['name' => 'Test User']);
+
+        // Test user cannot delete multiple users
+        $user2 = User::create([
+            'name' => 'Test User New',
+            'email' => 'testusernew@example.com',
+            'password' => 'password123',
+            'confirm_password' => 'password123',
+            'role' => 'user',
+        ]);
+
+        $response = $this->actingAs($user)->delete(route('admin.users.bulkDestroy'), ['ids' => [$user->id, $user2->id]]);
+        $response->assertStatus(403);
+        $this->assertDatabaseHas('users', ['name' => 'Test User']);
+        $this->assertDatabaseHas('users', ['name' => 'Test User New']);
+
+        // Test user cannot delete multiple users with admin role
+        $admin2 = User::create([
+            'name' => 'test admin2',
+            'email' => 'testadmin2@gmail.com',
+            'password' => 'password123',
+            'confirm_password' => 'password123',
+            'role' => 'admin',
+        ]);
+
+        $response = $this->actingAs($user)->delete(route('admin.users.bulkDestroy'), ['ids' => [$user->id, $admin2->id]]);
+        $response->assertStatus(403);
+        $this->assertDatabaseHas('users', ['name' => 'Test User']);
+        $this->assertDatabaseHas('users', ['name' => 'test admin2']);
     }
 
-    public function test_guest_cannot_bulk_delete_user()
+    public function test_guest_user_access()
     {
-        $users = User::factory()->count(3)->create();
-        foreach ($users as $user) {
-            $user->assignRole('user');
+        $user_id = User::factory()->create()->id;
+
+        // Test user cannot access index, create, show, edit views
+        $views = ['index', 'create', 'show', 'edit'];
+        foreach ($views as $view) {
+            $route = route("admin.users.{$view}", $view === 'show' || $view === 'edit' ? $user_id : null);
+            $response = $this->get($route);
+            $response->assertStatus(302)->assertRedirect(route('login'));
         }
-        $ids = $users->pluck('id')->toArray();
 
-        $response = $this->delete(route('admin.users.bulkDestroy'), ['ids' => $ids]);
-        $response->assertStatus(302);
-        $response->assertRedirect(route('login'));
-    }
+        // Test user cannot create user
+        $response = $this->post(route('admin.users.store'), [
+            'name' => 'Test User2',
+            'email' => 'testuser2@example.com',
+            'password' => 'password123',
+            'confirm_password' => 'password123',
+            'role' => 'user',
+        ]);
+        $response->assertStatus(302)->assertRedirect(route('login'));
+        $this->assertDatabaseMissing('users', ['name' => 'Test User2']);
 
-    public function test_admin_cannot_bulk_delete_user_with_admin_role()
-    {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
-        $admin->givePermissionTo('bulk-delete-users');
+        // Test user cannot create user with admin role
+        $response = $this->post(route('admin.users.store'), [
+            'name' => 'test admin',
+            'email' => 'testadmin@gmail.com',
+            'password' => 'password123',
+            'confirm_password' => 'password123',
+            'role' => 'admin',
+        ]);
+        $response->assertStatus(302)->assertRedirect(route('login'));
+        $this->assertDatabaseMissing('users', ['name' => 'test admin']);
 
-        $users = User::factory()->count(3)->create();
-        foreach ($users as $user) {
-            $user->assignRole('admin');
-        }
-        $ids = $users->pluck('id')->toArray();
+        // Test user cannot update user
+        $response = $this->put(route('admin.users.update', $user_id), [
+            'name' => 'Test User Updated',
+            'email' => 'testuserupdated@example.com',
+            'password' => 'password123',
+            'confirm_password' => 'password123',
+            'role' => 'user',
+        ]);
+        $response->assertStatus(302)->assertRedirect(route('login'));
+        $this->assertDatabaseMissing('users', ['name' => 'Test User Updated']);
 
-        $response = $this->actingAs($admin)->delete(route('admin.users.bulkDestroy'), ['ids' => $ids]);
-        $response->assertRedirect(route('admin.users.index'));
-        $response->assertSessionHas('error', 'Cannot delete admin user.');
-        $this->assertDatabaseHas('users', ['id' => $ids]);
+        // Test user cannot update user with admin role
+        $response = $this->put(route('admin.users.update', $user_id), [
+            'name' => 'Test Admin Updated',
+            'email' => 'testadminupdated@gmail.com',
+            'password' => 'password123',
+            'confirm_password' => 'password123',
+            'role' => 'admin',
+        ]);
+        $response->assertStatus(302)->assertRedirect(route('login'));
+        $this->assertDatabaseMissing('users', ['name' => 'Test Admin Updated']);
+
+        // Test user cannot delete user
+        $response = $this->delete(route('admin.users.destroy', $user_id));
+        $response->assertStatus(302)->assertRedirect(route('login'));
+        $this->assertDatabaseMissing('users', ['name' => 'Test User']);
+
+        // Test user cannot delete user with admin role
+        $response = $this->delete(route('admin.users.destroy', $user_id));
+        $response->assertStatus(302)->assertRedirect(route('login'));
+        $this->assertDatabaseHas('users', ['id' => $user_id]);
+
+        // Test user cannot delete multiple users
+        $user2 = User::create([
+            'name' => 'Test User New',
+            'email' => 'testusernew@example.com',
+            'password' => 'password123',
+            'confirm_password' => 'password123',
+            'role' => 'user',
+        ]);
+
+        $response = $this->delete(route('admin.users.bulkDestroy'), ['ids' => [$user_id, $user2->id]]);
+        $response->assertStatus(302)->assertRedirect(route('login'));
+        $this->assertDatabaseHas('users', ['id' => $user_id]);
+        $this->assertDatabaseHas('users', ['name' => 'Test User New']);
+
+        // Test user cannot delete multiple users with admin role
+        $admin2 = User::create([
+            'name' => 'test admin2',
+            'email' => 'testadmin2@gmail.com',
+            'password' => 'password123',
+            'confirm_password' => 'password123',
+            'role' => 'admin',
+        ]);
+
+        $response = $this->delete(route('admin.users.bulkDestroy'), ['ids' => [$user_id, $admin2->id]]);
+        $response->assertStatus(302)->assertRedirect(route('login'));
+        $this->assertDatabaseHas('users', ['id' => $user_id]);
+        $this->assertDatabaseHas('users', ['name' => 'test admin2']);
     }
 }
