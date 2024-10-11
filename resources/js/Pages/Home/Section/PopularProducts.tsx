@@ -7,7 +7,7 @@ import ProductCard from "@/Components/ProductCard";
 
 const PopularProductsSection = ({ products }: { products: Product[] }) => {
     return (
-        <section id="popularProduct" className="px-8 pt-24">
+        <section id="popularProduct" className="px-8 pt-24 mx-auto max-w-7xl">
             <div className="mb-8">
                 <h2 className="mb-3 text-3xl font-bold leading-tight tracking-normal sm:mb-4 sm:text-4xl md:text-5xl">
                     Popular Products

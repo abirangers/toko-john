@@ -24,7 +24,7 @@ const CartPage = ({ auth, cart }: PageProps<{ cart: Cart }>) => {
 
     return (
         <MainLayout user={auth.user}>
-            <section className="px-8 py-8">
+            <section className="px-8 py-8 mx-auto max-w-7xl">
                 <h1 className="mb-8 text-4xl font-bold leading-tight text-center text-primary">
                     Shopping Cart
                 </h1>

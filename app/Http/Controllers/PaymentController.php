@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\CreateSnapTokenService;
 use Illuminate\Http\Request;
 use App\Models\Order;
 use Inertia\Inertia;
@@ -9,48 +10,28 @@ use Midtrans\Config;
 use App\Mail\PaymentSuccessMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
     public function payment($order_code)
     {
-        Config::$serverKey = config('midtrans.server_key');
-        Config::$isProduction = config('midtrans.is_production');
-        Config::$isSanitized = config('midtrans.is_sanitized');
-        Config::$is3ds = config('midtrans.is_3ds');
-
         $order = Order::with(['user', 'orderItems.product'])->where('order_code', $order_code)->firstOrFail();
 
-        // Generate a unique order_id by appending a timestamp
-        $unique_order_id = $order->order_code . '-' . time();
-
-        $params = array(
-            'transaction_details' => array(
-                'order_id' => $unique_order_id,
-                'gross_amount' => intval($order->total_price),
-            ),
-            'customer_details' => array(
-                'first_name' => $order->user->name,
-                'email' => $order->user->email,
-            ),
-            'item_details' => $order->orderItems->map(function ($item) {
-                return [
-                    'id' => $item->product->id,
-                    'price' => intval($item->product->price),
-                    'quantity' => $item->quantity,
-                    'name' => $item->product->title,
-                ];
-            })->toArray(),
-        );
+        if (!$order) {
+            Log::error('Order not found', ['order_code' => $order_code]);
+            return redirect()->route('order.index')->with('error', 'Order not found');
+        }
 
         try {
-            \Log::info('Midtrans API Request:', $params);
-            $snapToken = \Midtrans\Snap::getSnapToken($params);
-            \Log::info('Midtrans API Response:', ['snapToken' => $snapToken]);
+            $createSnapTokenService = new CreateSnapTokenService($order);
+            $snapToken = $createSnapTokenService->getSnapToken();
+
+            Log::info('Respon API Midtrans:', ['snapToken' => $snapToken]);
             return Inertia::render('Payment/Index', compact('order', 'snapToken'));
         } catch (\Exception $e) {
-            \Log::error('Midtrans API Error: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'An error occurred while processing your payment. Please try again later.');
+            Log::error('Error API Midtrans: ' . $e->getMessage());
+            return redirect()->route('order.index')->with('error', 'An error occurred while processing your payment. Please try again later.');
         }
     }
 

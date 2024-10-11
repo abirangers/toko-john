@@ -25,7 +25,7 @@ const OrderPage = ({
     }, [flash]);
     return (
         <MainLayout user={auth.user}>
-            <section className="max-w-5xl px-8 pt-10 mx-auto">
+            <section className="px-8 pt-10 mx-auto max-w-7xl">
                 <div className="mb-6">
                     <h2 className="mb-1 text-3xl font-bold tracking-tight">
                         Orders

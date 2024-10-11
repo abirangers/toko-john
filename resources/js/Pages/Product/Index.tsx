@@ -50,7 +50,7 @@ const ProductPage = ({ products, categories }: ProductProps) => {
 
     return (
         <MainLayout user={auth.user}>
-            <section className="px-8 pt-10">
+            <section className="px-8 pt-10 mx-auto max-w-7xl">
                 <div className="flex items-center justify-between mb-6">
                     <div>
                         <h2 className="mb-1 text-3xl font-bold tracking-tighter text-primary">

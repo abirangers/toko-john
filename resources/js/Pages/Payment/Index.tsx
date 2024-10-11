@@ -16,7 +16,7 @@ const IndexPayment: React.FC<IndexPaymentProps> = ({
     order,
     auth,
     snapToken,
-}) => {
+}): React.ReactNode => {
     useEffect(() => {
         const midtransScriptUrl =
             "https://app.sandbox.midtrans.com/snap/snap.js";
@@ -24,11 +24,18 @@ const IndexPayment: React.FC<IndexPaymentProps> = ({
         let scriptTag = document.createElement("script");
         scriptTag.src = midtransScriptUrl;
 
-        // Ubah ini
         const myMidtransClientKey = import.meta.env.VITE_MIDTRANS_CLIENT_KEY;
         if (myMidtransClientKey) {
             scriptTag.setAttribute("data-client-key", myMidtransClientKey);
         }
+
+        scriptTag.onload = () => {
+            console.log("Midtrans script loaded successfully");
+        };
+
+        scriptTag.onerror = (error) => {
+            console.error("Error loading Midtrans script:", error);
+        };
 
         document.body.appendChild(scriptTag);
 
@@ -38,6 +45,21 @@ const IndexPayment: React.FC<IndexPaymentProps> = ({
     }, []);
 
     const handlePay = () => {
+        console.log("Attempting to initialize Snap payment");
+        console.log("Snap Token:", snapToken);
+
+        if (typeof window.snap === "undefined") {
+            console.error(
+                "Snap object is not available. Midtrans script might not be loaded correctly."
+            );
+            return;
+        }
+
+        if (!snapToken) {
+            console.error("Snap Token is missing or invalid");
+            return;
+        }
+
         window.snap.pay(snapToken, {
             onSuccess: function (result: any) {
                 console.log("Payment success:", result);
@@ -51,7 +73,8 @@ const IndexPayment: React.FC<IndexPaymentProps> = ({
                 console.log("Payment pending:", result);
             },
             onError: function (result: any) {
-                console.log("Payment error:", result);
+                console.error("Payment error:", result);
+                console.error("Detail error:", JSON.stringify(result, null, 2));
                 alert("Payment error: " + result.status_message);
             },
             onClose: function () {
@@ -91,10 +114,7 @@ const IndexPayment: React.FC<IndexPaymentProps> = ({
                 <div className="mb-4">
                     <strong>Total Payment:</strong> Rp {order.total_price}
                 </div>
-                <Button
-                    className="w-full"
-                    onClick={handlePay}
-                >
+                <Button className="w-full" onClick={handlePay}>
                     Pay Now
                 </Button>
                 <div id="snap-container"></div>

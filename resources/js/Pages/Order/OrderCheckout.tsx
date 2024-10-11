@@ -117,7 +117,7 @@ const OrderCheckout: React.FC<OrderCheckoutProps> = ({ cart }) => {
 
     return (
         <MainLayout user={cart.user}>
-            <div className="container py-8 mx-auto">
+            <div className="py-8 mx-auto max-w-7xl">
                 <h1 className="mb-8 text-4xl font-extrabold tracking-tight text-center">
                     Product Checkout
                 </h1>

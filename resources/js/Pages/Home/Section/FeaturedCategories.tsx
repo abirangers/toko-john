@@ -16,7 +16,7 @@ const FeaturedCategoriesSection = ({
     categories: Category[];
 }) => {
     return (
-        <section id="category" className="px-8 pt-24">
+        <section id="category" className="px-8 pt-24 mx-auto max-w-7xl">
             <FeaturedCategoriesHeader />
 
             <div className="grid gap-4 sm:grid-flow-col sm:grid-rows-2 md:grid-rows-1">
