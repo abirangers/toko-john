@@ -62,7 +62,6 @@ const IndexPayment: React.FC<IndexPaymentProps> = ({
 
         window.snap.pay(snapToken, {
             onSuccess: function (result: any) {
-                console.log("Payment success:", result);
                 router.put(
                     route("payment.success", {
                         order_code: order.order_code,
@@ -70,7 +69,11 @@ const IndexPayment: React.FC<IndexPaymentProps> = ({
                 );
             },
             onPending: function (result: any) {
-                console.log("Payment pending:", result);
+                router.put(
+                    route("payment.pending", {
+                        order_code: order.order_code,
+                    })
+                );
             },
             onError: function (result: any) {
                 console.error("Payment error:", result);

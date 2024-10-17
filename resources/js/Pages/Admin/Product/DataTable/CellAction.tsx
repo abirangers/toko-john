@@ -10,8 +10,8 @@ import {
 import { Trash, Edit, MoreHorizontal, Check, Eye } from "lucide-react";
 import { Button } from "@/Components/ui/button";
 import { router } from "@inertiajs/react";
-import { ConfirmDialog } from "@/Components/ConfirmDialog";
 import { Product } from "@/types";
+import { ConfirmDialog } from "@/Components/ConfirmDialog";
 
 interface CellActionProps {
     data: Product;

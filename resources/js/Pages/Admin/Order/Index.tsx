@@ -21,13 +21,6 @@ const IndexOrder = ({ orders }: { orders: Order[] }) => {
                         store.
                     </p>
                 </div>
-                <Button
-                    size="sm"
-                    onClick={() => router.get(route("admin.orders.create"))}
-                >
-                    <Plus className="w-5 h-5 mr-2" />
-                    Add New
-                </Button>
             </div>
             <div className="mt-4">
                 <DataTable

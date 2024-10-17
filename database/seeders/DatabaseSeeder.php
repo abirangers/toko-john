@@ -20,7 +20,7 @@ class DatabaseSeeder extends Seeder
             CategorySeeder::class,
             ProductSeeder::class,
             OrderSeeder::class,
-            IndoRegionSeeder::class, // Import data Provinsi, Kota/Kabupaten, Kecamatan/Distrik, dan Kelurahan
+            IndoRegionSeeder::class,
         ]);
     }
 }

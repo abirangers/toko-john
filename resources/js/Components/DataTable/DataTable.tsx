@@ -135,7 +135,7 @@ export function DataTable<TData extends Idnetifiable, TValue>({
                             })
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={columns.length}>
+                                <TableCell colSpan={columns.length} className="text-center">
                                     No data
                                 </TableCell>
                             </TableRow>

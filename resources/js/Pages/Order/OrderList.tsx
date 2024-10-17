@@ -57,7 +57,7 @@ const OrderList = ({ order }: { order: Order }): React.JSX.Element => {
             onFinish: () => {
                 setOpen(false);
                 setDeleting(false);
-            }
+            },
         });
     };
 
@@ -98,29 +98,31 @@ const OrderList = ({ order }: { order: Order }): React.JSX.Element => {
                                     Complete
                                 </DropdownMenuItem>
                             )}
-                            {order.status === "pending" && (
-                                <DropdownMenuItem
-                                    onClick={() =>
-                                        router.get(
-                                            route("order.show", order.id)
-                                        )
-                                    }
-                                    className="cursor-pointer"
-                                >
-                                    <Eye className="w-4 h-4 mr-2" />
-                                    View Details
-                                </DropdownMenuItem>
-                            )}
+                            {order.status === "pending" ||
+                                (order.status === "paid" && (
+                                    <DropdownMenuItem
+                                        onClick={() =>
+                                            router.get(
+                                                route("order.show", order.id)
+                                            )
+                                        }
+                                        className="cursor-pointer"
+                                    >
+                                        <Eye className="w-4 h-4 mr-2" />
+                                        View Details
+                                    </DropdownMenuItem>
+                                ))}
 
-                            {order.status === "pending" && (
-                                <DropdownMenuItem
-                                    onClick={() => setOpen(true)}
-                                    className="cursor-pointer"
-                                >
-                                    <XCircleIcon className="w-4 h-4 mr-2" />
-                                    Cancel
-                                </DropdownMenuItem>
-                            )}
+                            {order.status === "pending" ||
+                                (order.status === "cancelled" && (
+                                    <DropdownMenuItem
+                                        onClick={() => setOpen(true)}
+                                        className="cursor-pointer"
+                                    >
+                                        <XCircleIcon className="w-4 h-4 mr-2" />
+                                        Cancel
+                                    </DropdownMenuItem>
+                                ))}
                         </DropdownMenuContent>
                     </DropdownMenu>
 

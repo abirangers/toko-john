@@ -76,7 +76,7 @@ class MediaController extends Controller
         try {
             $validator = Validator::make($request->all(), [
                 'files' => 'required|array',
-                'files.*' => 'required|file|mimes:jpeg,png,jpg,bmp|max:5120',
+                'files.*' => 'required|file|mimes:jpeg,png,jpg,bmp',
                 'user_id' => 'required|exists:users,id'
             ]);
 

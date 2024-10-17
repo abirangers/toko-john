@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Common\BulkDestroyRequest;
 use App\Http\Requests\Admin\User\CreateUserRequest;
 use App\Http\Requests\Admin\User\UpdateUserRequest;
+use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
@@ -34,7 +35,9 @@ class UserCrudController extends Controller implements HasMiddleware
      */
     public function index()
     {
-        $users = User::with('roles')->get();
+        $users = User::with('roles')->whereHas('roles', function (Builder $query) {
+            $query->where('name', '!=', 'admin');
+        })->get();
         return Inertia::render('Admin/User/Index', compact('users'));
     }
 

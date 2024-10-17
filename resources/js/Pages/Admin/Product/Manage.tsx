@@ -1,5 +1,5 @@
-import React, { useRef, useState } from "react";
-import { Link, useForm } from "@inertiajs/react";
+import React, { useState } from "react";
+import { useForm } from "@inertiajs/react";
 import DashboardLayout from "@/Layouts/DashboardLayout";
 import { Button } from "@/Components/ui/button";
 import { Input } from "@/Components/ui/input";
@@ -16,7 +16,6 @@ import { toast } from "sonner";
 import MediaLibrary from "@/Components/MediaLibrary";
 import { Image } from "lucide-react";
 import { Textarea } from "@/Components/ui/textarea";
-import BreadcrumbWrapper from "@/Components/BreadcrumbWrapper";
 
 export default function ManageProduct({
     product,
@@ -30,7 +29,7 @@ export default function ManageProduct({
 
     const form = useForm<{
         title: string;
-        description: string;
+        description?: string;
         price: string;
         stock: string;
         image: string;
@@ -52,7 +51,6 @@ export default function ManageProduct({
         if (product) {
             form.patch(route("admin.products.update", product?.id), {
                 onError: (error: any) => {
-                    console.log(error);
                     form.setError(error);
                     Object.values(form.errors).map((error: any) => {
                         toast.error(`error brow ${error}`);
@@ -178,12 +176,12 @@ export default function ManageProduct({
 
                 <div className="mb-4">
                     <Label htmlFor="description" className="mb-2">
-                        Description<span className="text-red-600">*</span>
+                        Description
                     </Label>
                     <Textarea
                         id="description"
                         name="description"
-                        value={form.data.description}
+                        value={form.data.description ?? ""}
                         onChange={(e) =>
                             form.setData("description", e.target.value)
                         }

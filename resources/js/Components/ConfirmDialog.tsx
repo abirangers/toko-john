@@ -6,6 +6,7 @@ import {
     DialogTitle,
     DialogDescription,
     DialogFooter,
+    DialogClose,
 } from "@/Components/ui/dialog";
 import { Button } from "@/Components/ui/button";
 
@@ -44,16 +45,26 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                 <DialogTitle>{title}</DialogTitle>
                 <DialogDescription>{description}</DialogDescription>
                 <DialogFooter>
-                    <Button variant="ghost" onClick={() => onOpenChange(false)}>
-                        {cancelText}
-                    </Button>
-                    <Button
-                        variant={confirmVariant as any}
-                        onClick={onConfirm}
-                        disabled={confirmDisabled}
-                    >
-                        {confirmText}
-                    </Button>
+                    <DialogClose asChild>
+                        <Button
+                            variant="ghost"
+                            onClick={() => onOpenChange(false)}
+                        >
+                            {cancelText}
+                        </Button>
+                    </DialogClose>
+                    <DialogClose asChild>
+                        <Button
+                            variant={confirmVariant as any}
+                            onClick={() => {
+                                onConfirm();
+                                onOpenChange(false);
+                            }}
+                            disabled={confirmDisabled}
+                        >
+                            {confirmText}
+                        </Button>
+                    </DialogClose>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

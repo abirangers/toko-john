@@ -118,7 +118,7 @@ const FilterSheet = ({
                     <SheetTitle className="pb-4 border-b border-gray-300 text-secondary">
                         Categories
                     </SheetTitle>
-                    <SheetDescription className="pt-3 mx-auto space-x-2">
+                    <SheetDescription className="pt-3 mx-auto flex flex-col gap-y-2 w-full">
                         {categories?.map((category, i) => (
                             <Button
                                 key={i}

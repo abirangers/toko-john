@@ -34,8 +34,6 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
         });
     };
 
-    console.log(data);
-
     return (
         <>
             <DropdownMenu>
@@ -61,15 +59,6 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
                     >
                         <Eye className="w-4 h-4 mr-2" />
                         View Details
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                        onClick={() =>
-                            router.get(route("admin.orders.edit", data.id))
-                        }
-                        className="cursor-pointer"
-                    >
-                        <Edit className="w-4 h-4 mr-2" />
-                        Update
                     </DropdownMenuItem>
                     <DropdownMenuItem
                         onClick={() => setOpen(true)}
