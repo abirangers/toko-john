@@ -36,9 +36,12 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
 
     return (
         <>
-            <DropdownMenu>
+            <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="w-8 h-8 p-0 group-hover:bg-red-600">
+                    <Button
+                        variant="ghost"
+                        className="w-8 h-8 p-0 group-hover:bg-red-600"
+                    >
                         <span className="sr-only">Open menu</span>
                         <MoreHorizontal className="w-4 h-4" />
                     </Button>
@@ -46,7 +49,13 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
                 <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
                     {data.status === "pending" && (
-                        <DropdownMenuItem onClick={() => router.put(route("admin.orders.confirm", data.id))}>
+                        <DropdownMenuItem
+                            onClick={() =>
+                                router.put(
+                                    route("admin.orders.confirm", data.id)
+                                )
+                            }
+                        >
                             <Check className="w-4 h-4 mr-2" />
                             Confirm
                         </DropdownMenuItem>

@@ -1,18 +1,17 @@
 import React from "react";
 import {
     Dialog,
-    DialogTrigger,
     DialogContent,
+    DialogHeader,
     DialogTitle,
     DialogDescription,
     DialogFooter,
-    DialogClose,
 } from "@/Components/ui/dialog";
 import { Button } from "@/Components/ui/button";
 
 interface ConfirmDialogProps {
     open: boolean;
-    onOpenChange: (open: boolean) => void;
+    onOpenChange: React.Dispatch<React.SetStateAction<boolean>>;
     title: string;
     description: string;
     onConfirm: () => void;
@@ -26,6 +25,7 @@ interface ConfirmDialogProps {
         | "link";
     confirmDisabled?: boolean;
     cancelText?: string;
+    modal?: boolean;
 }
 
 export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
@@ -38,33 +38,32 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
     confirmVariant = "primary",
     confirmDisabled = false,
     cancelText = "Cancel",
+    modal = true,
 }) => {
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
+        <Dialog open={open} onOpenChange={onOpenChange} modal={modal}>
             <DialogContent>
-                <DialogTitle>{title}</DialogTitle>
-                <DialogDescription>{description}</DialogDescription>
+                <DialogHeader>
+                    <DialogTitle>{title}</DialogTitle>
+                    <DialogDescription>{description}</DialogDescription>
+                </DialogHeader>
                 <DialogFooter>
-                    <DialogClose asChild>
-                        <Button
-                            variant="ghost"
-                            onClick={() => onOpenChange(false)}
-                        >
-                            {cancelText}
-                        </Button>
-                    </DialogClose>
-                    <DialogClose asChild>
-                        <Button
-                            variant={confirmVariant as any}
-                            onClick={() => {
-                                onConfirm();
-                                onOpenChange(false);
-                            }}
-                            disabled={confirmDisabled}
-                        >
-                            {confirmText}
-                        </Button>
-                    </DialogClose>
+                    <Button
+                        variant="outline"
+                        onClick={() => onOpenChange(false)}
+                    >
+                        {cancelText}
+                    </Button>
+                    <Button
+                        variant={confirmVariant as any}
+                        onClick={() => {
+                            onConfirm();
+                            onOpenChange(false);
+                        }}
+                        disabled={confirmDisabled}
+                    >
+                        {confirmText}
+                    </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

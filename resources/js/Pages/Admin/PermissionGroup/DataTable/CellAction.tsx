@@ -36,7 +36,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
 
     return (
         <>
-            <DropdownMenu>
+            <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="w-8 h-8 p-0">
                         <span className="sr-only">Open menu</span>
@@ -47,7 +47,9 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
                     <DropdownMenuItem
                         onClick={() =>
-                            router.get(route("admin.permission-groups.show", data.id))
+                            router.get(
+                                route("admin.permission-groups.show", data.id)
+                            )
                         }
                         className="cursor-pointer"
                     >
@@ -56,7 +58,9 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
                     </DropdownMenuItem>
                     <DropdownMenuItem
                         onClick={() =>
-                            router.get(route("admin.permission-groups.edit", data.id))
+                            router.get(
+                                route("admin.permission-groups.edit", data.id)
+                            )
                         }
                         className="cursor-pointer"
                     >

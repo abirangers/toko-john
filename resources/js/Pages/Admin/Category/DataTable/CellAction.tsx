@@ -36,7 +36,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
 
     return (
         <>
-            <DropdownMenu>
+            <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="w-8 h-8 p-0">
                         <span className="sr-only">Open menu</span>
@@ -83,6 +83,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
                 confirmVariant="destructive"
                 confirmDisabled={deleting}
                 cancelText="Cancel"
+                modal={open}
             />
         </>
     );

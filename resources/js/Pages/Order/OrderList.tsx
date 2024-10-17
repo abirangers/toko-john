@@ -76,7 +76,7 @@ const OrderList = ({ order }: { order: Order }): React.JSX.Element => {
                     >
                         {order.status}
                     </Badge>
-                    <DropdownMenu>
+                    <DropdownMenu modal={false}>
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" className="w-8 h-8 p-0">
                                 <span className="sr-only">Open menu</span>
